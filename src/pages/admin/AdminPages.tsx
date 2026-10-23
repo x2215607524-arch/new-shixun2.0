@@ -195,3 +195,15 @@ export function AdminAICenter() {
   return <AdminAICenterPage />;
 }
 
+export function AdminNetworkSimulation() {
+  return (
+    <AdminStandardPage
+      title="网络仿真"
+      description="管理网络拓扑、仿真任务与运行环境"
+      primaryAction="新建仿真"
+      stats={[{ title: "仿真场景", value: "24", icon: Network }]}
+      columns={["场景名称", "网络拓扑", "运行状态"]}
+      data={[["企业园区网络", "三层交换网络", "运行中"]]}
+    />
+  );
+}

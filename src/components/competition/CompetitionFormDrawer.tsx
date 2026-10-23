@@ -33,6 +33,28 @@ const inputClass = styles.input;
 const secondaryClass = styles.secondary;
 const primaryClass = styles.primary;
 
+const parseDateTimeToInput = (val?: string, defaultTime = "09:00:00") => {
+  if (!val) return "";
+  const trimmed = val.trim();
+  if (trimmed.includes("T")) {
+    const [d, t = ""] = trimmed.split("T");
+    const parts = (t || defaultTime).split(":");
+    const hh = (parts[0] || "00").padStart(2, "0");
+    const mm = (parts[1] || "00").padStart(2, "0");
+    const ss = (parts[2] || "00").padStart(2, "0");
+    return `${d}T${hh}:${mm}:${ss}`;
+  }
+  if (trimmed.includes(" ")) {
+    const [d, t = ""] = trimmed.split(" ");
+    const parts = (t || defaultTime).split(":");
+    const hh = (parts[0] || "00").padStart(2, "0");
+    const mm = (parts[1] || "00").padStart(2, "0");
+    const ss = (parts[2] || "00").padStart(2, "0");
+    return `${d}T${hh}:${mm}:${ss}`;
+  }
+  return `${trimmed}T${defaultTime}`;
+};
+
 export default function CompetitionFormDrawer({ initialCompetition, onClose, onSave }: Props) {
   const [tab, setTab] = useState<FormTab>("basic");
   const [values, setValues] = useState<CompetitionFormValues>(() => {
@@ -40,8 +62,8 @@ export default function CompetitionFormDrawer({ initialCompetition, onClose, onS
     return {
       name: initialCompetition?.name || "", type: initialCompetition?.type || "",
       participants: initialCompetition?.participants || 0,
-      startAt: initialCompetition?.startAt || (start ? `${start.slice(0, 10)}T09:00` : ""),
-      endAt: initialCompetition?.endAt || (end ? `${end.slice(0, 10)}T18:00` : ""),
+      startAt: initialCompetition?.startAt ? parseDateTimeToInput(initialCompetition.startAt, "09:00:00") : (start ? parseDateTimeToInput(start, "09:00:00") : ""),
+      endAt: initialCompetition?.endAt ? parseDateTimeToInput(initialCompetition.endAt, "18:00:00") : (end ? parseDateTimeToInput(end, "18:00:00") : ""),
       organizer: initialCompetition?.organizer || "", coOrganizer: initialCompetition?.coOrganizer || "",
       description: initialCompetition?.description || "", notice: initialCompetition?.notice || "",
       competitionFiles: initialCompetition?.competitionFiles || [],
@@ -123,7 +145,7 @@ export default function CompetitionFormDrawer({ initialCompetition, onClose, onS
             {field("name", "竞赛名称", true, textField("name", "请输入竞赛名称"))}
             {field("type", "专业方向", true, <CompetitionSelect {...attrs("type")} value={values.type} onChange={value => update("type", value)} placeholder="请选择专业方向" options={Array.from(new Set(["大模型开发", "计算机视觉", "机器学习", "自然语言处理", "安全对抗", "云计算", "大数据", "人工智能", ...(initialCompetition?.type ? [initialCompetition.type] : [])]))} />)}
             {field("participants", "报名人数", false, <div className="inline-flex h-9 border border-neutral-200 rounded-[4px] overflow-hidden"><button aria-label="减少报名人数" type="button" disabled={values.participants <= 0} onClick={() => update("participants", Math.max(0, values.participants - 1))} className="px-3 bg-neutral-50 border-r border-neutral-200 text-neutral-500 hover:text-[#fa541c] disabled:opacity-40 cursor-pointer"><Minus className="w-3.5 h-3.5" /></button><input {...attrs("participants")} type="number" min={0} step={1} value={values.participants} onChange={event => update("participants", event.target.value === "" ? 0 : Number(event.target.value))} className="w-24 outline-none text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" /><button aria-label="增加报名人数" type="button" onClick={() => update("participants", values.participants + 1)} className="px-3 bg-neutral-50 border-l border-neutral-200 text-neutral-500 hover:text-[#fa541c] cursor-pointer"><Plus className="w-3.5 h-3.5" /></button></div>)}
-            {field("startAt", "场次时间", true, <div className="space-y-1.5"><div className="flex flex-col min-[480px]:flex-row items-center gap-2 text-[13px] w-full text-neutral-800"><div className="flex-1 min-w-0 w-full"><DateTimePicker id="competition-startAt" label="开始时间" value={values.startAt} onChange={value => update("startAt", value)} placeholder="请选择开始时间" showPresets={false} align="left" invalid={!!errors.startAt} describedBy={errors.startAt ? "competition-startAt-error" : undefined} className="[&_[data-datetime-trigger]]:text-[13px]" /></div><span className="text-neutral-400 font-medium hidden min-[480px]:inline">—</span><div className="flex-1 min-w-0 w-full"><DateTimePicker id="competition-endAt" label="结束时间" value={values.endAt} onChange={value => update("endAt", value)} placeholder="请选择结束时间" showPresets={false} invalid={!!errors.endAt} describedBy={errors.endAt ? "competition-endAt-error" : undefined} className="[&_[data-datetime-trigger]]:text-[13px]" /></div></div>{errors.endAt && <p id="competition-endAt-error" role="alert" className="text-red-500 text-xs">{errors.endAt}</p>}</div>)}
+            {field("startAt", "场次时间", true, <div className="space-y-1.5"><div className="flex flex-col min-[480px]:flex-row items-center gap-2 text-[13px] w-full text-neutral-800"><div className="flex-1 min-w-0 w-full"><DateTimePicker id="competition-startAt" label="开始时间" showSeconds={true} value={values.startAt} onChange={value => update("startAt", value)} placeholder="请选择开始时间" showPresets={false} align="left" invalid={!!errors.startAt} describedBy={errors.startAt ? "competition-startAt-error" : undefined} className="[&_[data-datetime-trigger]]:text-[13px]" /></div><span className="text-neutral-400 font-medium hidden min-[480px]:inline">—</span><div className="flex-1 min-w-0 w-full"><DateTimePicker id="competition-endAt" label="结束时间" showSeconds={true} value={values.endAt} onChange={value => update("endAt", value)} placeholder="请选择结束时间" showPresets={false} invalid={!!errors.endAt} describedBy={errors.endAt ? "competition-endAt-error" : undefined} className="[&_[data-datetime-trigger]]:text-[13px]" /></div></div>{errors.endAt && <p id="competition-endAt-error" role="alert" className="text-red-500 text-xs">{errors.endAt}</p>}</div>)}
             {field("organizer", "主办方", false, textField("organizer", "请输入主办方"))}
             {field("coOrganizer", "协办方", false, textField("coOrganizer", "请输入协办方"))}
             {field("description", "竞赛介绍", false, textField("description", "请输入竞赛介绍", true), true)}

@@ -50,7 +50,8 @@ import {
   AdminTenants,
   AdminAIQuota,
   AdminCompetitions,
-  AdminAICenter
+  AdminAICenter,
+  AdminNetworkSimulation
 } from "./pages/admin/AdminPages";
 import { 
   SecurityLayout, PublicCloudLayout, PrivateCloudLayout, 
@@ -70,6 +71,7 @@ import SystemBilling from "./pages/admin/SystemBilling";
 import SystemResources from "./pages/admin/SystemResources";
 import SystemSecurity from "./pages/admin/SystemSecurity";
 import AdminSystemPage from "./pages/admin/AdminSystemPage";
+import CompetitionCockpit from "./pages/admin/CompetitionCockpit";
 
 import LoginUser from "./pages/LoginUser";
 import LoginTeacher from "./pages/LoginTeacher";
@@ -118,6 +120,7 @@ export default function App() {
         {/* Skill Builder & Practice Chat (Full Screen) */}
         <Route path="/skill-builder" element={<SkillBuilder />} />
         <Route path="/practice-chat" element={<PracticeChat />} />
+        <Route path="/admin/competitions/:competitionId/cockpit" element={<CompetitionCockpit />} />
 
         {/* Full-screen teacher assignment preview without top layout header */}
         <Route path="/teacher/course/:id/assignment-preview" element={<TeacherAssignmentPreview />} />
@@ -193,6 +196,7 @@ export default function App() {
             <Route path="storage" element={<PublicCloudStorage />} />
             <Route path="billing" element={<PublicCloudBilling />} />
           </Route>
+          <Route path="network-simulation" element={<AdminNetworkSimulation />} />
           <Route path="private-cloud" element={<PrivateCloudLayout />}>
             <Route index element={<AdminPrivateCloud />} />
             <Route path="nodes" element={<PrivateCloudNodes />} />

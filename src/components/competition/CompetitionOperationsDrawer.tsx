@@ -20,12 +20,27 @@ const titles = { grading: "批阅管理", checks: "检查项", scoring: "分值�
 const categories: { key: CheckCategory; label: string }[] = [
   { key: "environment", label: "环境检查项" }, { key: "request", label: "模拟请求类型" }, { key: "custom", label: "自定义模拟请求检查项" }
 ];
-const actionClass = "text-[#fa541c] hover:text-[#e84a15] text-xs font-semibold cursor-pointer whitespace-nowrap transition-colors";
+const actionClass = styles.action;
 const secondaryClass = styles.secondary;
 const primaryClass = styles.primary;
 const inputClass = styles.input;
-const cellClass = "px-3 py-3 text-neutral-600";
+const cellClass = styles.tableCell;
 const now = () => new Date().toLocaleString("sv-SE");
+
+const referenceScoreEvents = [
+  ["浮动得分-安全性扣分", "__安全性扣分没有问题", 0, "2026-10-22 14:41:15"],
+  ["浮动得分-mysql数据库", "__不存在不合规的mysql数据库实例", 0, "2026-10-22 14:41:13"],
+  ["浮动得分-弹性ip成本", "__没有过多的弹性ip", 0, "2026-10-22 14:41:13"],
+  ["浮动得分-云硬盘成本分", "云硬盘成本分", 0, "2026-10-22 14:41:13"],
+  ["浮动得分-负载均衡器", "__没有负载均衡器费用", 0, "2026-10-22 14:41:13"],
+  ["浮动得分-ecs成本", "ECS实例成本分", 0, "2026-10-22 14:41:13"],
+  ["功能完成-业务程序", "功能完成-业务程序(历史得分)", 0, "2026-10-22 14:41:13"],
+  ["功能完成-对象存储", "功能完成-对象存储(历史得分)", 0, "2026-10-22 14:41:13"],
+  ["浮动得分-安全性扣分", "__安全性扣分没有问题", 0, "2026-10-22 14:40:17"],
+  ["mysql-子网络由表", "mysql-子网络由表(历史得分)", 0, "2026-10-22 14:40:17"],
+  ["弹性伸缩配置和私有镜像", "弹性伸缩配置和私有镜像(历史得分)", 0, "2026-10-22 14:40:16"],
+  ["mysql-数据库备份任务检查", "mysql-数据库备份任务检查(历史得分)", 0, "2026-10-22 14:40:15"],
+] as const;
 
 function SearchInput({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) {
   return <div className="relative w-60 max-w-full"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" /><input aria-label={placeholder} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className={cn(styles.input, "pl-9 pr-4 h-9")} /></div>;
@@ -130,6 +145,7 @@ export default function CompetitionOperationsDrawer({ target, data, onChange, on
   if (!target || !data) return null;
   const { competition, mode } = target;
   const activeCandidate = data.candidates.find(row => row.id === candidatePanel?.id);
+  const isCandidateGrading = candidatePanel?.kind === "grade" && !!activeCandidate;
   const activeMenuCandidate = data.candidates.find(row => row.id === rowMenu?.id);
   const term = search.trim().toLowerCase();
   const filteredCandidates = data.candidates.filter(row => row.name.toLowerCase().includes(term) || row.account.toLowerCase().includes(term));
@@ -172,8 +188,8 @@ export default function CompetitionOperationsDrawer({ target, data, onChange, on
     onChange({ ...data, fixedTotal, floatingTotal }); onNotify("分值配比已保存"); onClose();
   };
   const tableWrapper = styles.table;
-  const tableHeader = "bg-neutral-50 border-b border-neutral-200 text-neutral-500 text-xs font-medium";
-  const rowClass = "border-b border-neutral-100 last:border-0 hover:bg-neutral-50/50 transition-colors text-xs";
+  const tableHeader = styles.tableHeader;
+  const rowClass = styles.tableRow;
 
   const renderChecksTable = (readOnly = false) => <>
     <div className={tableWrapper}><table className="w-full text-left border-collapse whitespace-nowrap min-w-[760px]"><thead><tr className={tableHeader}>
@@ -187,20 +203,38 @@ export default function CompetitionOperationsDrawer({ target, data, onChange, on
   </>;
 
   return createPortal(<div className={styles.overlay} onClick={onClose}>
-    <div ref={drawerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={titles[mode]} className={cn(styles.panel, mode === "scoring" ? "max-w-[680px]" : "max-w-[1100px]")} onClick={e => e.stopPropagation()}>
+    <div ref={drawerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={isCandidateGrading ? "批阅考生" : titles[mode]} className={cn(styles.panel, mode === "scoring" ? "max-w-[680px]" : "max-w-[1100px]")} onClick={e => e.stopPropagation()}>
       <header className={styles.header}>
         <h2 className={styles.title}>{candidatePanel?.kind === "grade" ? "批阅考生" : titles[mode]}</h2>
         <div className="flex items-center gap-3">{mode === "proctor" && <Button variant="outline" onClick={() => { setRefreshAt(new Date().toLocaleTimeString("zh-CN", { hour12: false })); onNotify("监考信息已刷新"); }} className={`${secondaryClass} gap-1.5`}><RefreshCw className="w-3.5 h-3.5" />刷新</Button>}<button aria-label="关闭竞赛抽屉" onClick={onClose} className={styles.close}><X className="w-4 h-4" /></button></div>
       </header>
       <div className={styles.body}>
-        <p className="text-xs text-neutral-500 truncate" title={competition.name}>{competition.name}</p>
-        {isSubpage && <button className="flex items-center gap-1.5 text-neutral-500 hover:text-[#fa541c] text-xs cursor-pointer" onClick={backToList}><ArrowLeft className="w-3.5 h-3.5" />返回{titles[mode]}列表</button>}
+        {isCandidateGrading ? <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+          <button type="button" className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 text-xs text-neutral-600 transition-colors hover:text-[#fa541c]" onClick={backToList}><ArrowLeft className="size-3.5" />返回批阅列表</button>
+          <span aria-hidden="true" className="h-3 w-px bg-neutral-300" />
+          <p className="min-w-0 flex-1 truncate text-xs text-neutral-500" title={competition.name}>{competition.name}</p>
+        </div> : <>
+          <p className="text-xs text-neutral-500 truncate" title={competition.name}>{competition.name}</p>
+          {isSubpage && <button className="flex items-center gap-1.5 text-neutral-500 hover:text-[#fa541c] text-xs cursor-pointer" onClick={backToList}><ArrowLeft className="w-3.5 h-3.5" />返回{titles[mode]}列表</button>}
+        </>}
 
         {candidatePanel && activeCandidate ? candidatePanel.kind === "grade" ? <CompetitionCandidateGrading candidate={activeCandidate} data={data} onNotify={onNotify} /> : <div className="space-y-5">
           <div className="border border-neutral-200 rounded-[4px] overflow-hidden"><div className="bg-neutral-50 px-4 py-3 border-b border-neutral-200 font-semibold">{candidatePanel.kind === "events" ? "得分事件" : "竞赛结果"} · {activeCandidate.name}</div>
             <div className="p-4 grid grid-cols-2 gap-3 text-xs text-neutral-600"><div>账号：{activeCandidate.account}</div><div>姓名：{activeCandidate.name}</div><div>状态：{activeCandidate.status}</div><div>当前得分：<span className="text-[#fa541c] font-semibold">{competitionScore(activeCandidate, data).total} / {competitionScore(activeCandidate, data).maximum}</span></div></div>
           </div>
-          {candidatePanel.kind === "events" && <div className={tableWrapper}><table className="w-full text-left whitespace-nowrap"><thead><tr className={tableHeader}>{["事件时间", "固定原始得分", "浮动原始得分", "当次总得分", "批阅说明"].map(label => <th key={label} className="p-3 font-medium">{label}</th>)}</tr></thead><tbody>{activeCandidate.events.length ? [...activeCandidate.events].reverse().map(event => <tr key={event.id} className={rowClass}><td className={cellClass}>{event.time}</td><td className={cellClass}>{event.fixed}</td><td className={cellClass}>{event.floating}</td><td className={cellClass}>{event.total}</td><td className={`${cellClass} whitespace-normal min-w-40`}>{event.comment}</td></tr>) : <EmptyRow columns={5} label="暂无得分事件" />}</tbody></table></div>}
+          {candidatePanel.kind === "events" && <div className={tableWrapper}>
+            <table className="w-full min-w-[860px] table-fixed border-collapse text-left whitespace-nowrap">
+              <caption className="sr-only">{activeCandidate.name}的得分事件</caption>
+              <colgroup><col className="w-[36%]" /><col className="w-[36%]" /><col className="w-[9%]" /><col className="w-[19%]" /></colgroup>
+              <thead><tr className={tableHeader}>{["检查项名称", "得分事件", "分值", "时间"].map(label => <th key={label} scope="col" className="p-3 font-medium">{label}</th>)}</tr></thead>
+              <tbody>{referenceScoreEvents.map(([checkName, eventName, value, time], index) => <tr key={`${checkName}-${time}-${index}`} className={rowClass}>
+                <td className={`${cellClass} whitespace-normal break-words leading-5`}>{checkName}</td>
+                <td className={`${cellClass} whitespace-normal break-words leading-5`}>{eventName}</td>
+                <td className={`${cellClass} tabular-nums`}>{value}</td>
+                <td className={`${cellClass} tabular-nums`}>{time}</td>
+              </tr>)}</tbody>
+            </table>
+          </div>}
           {candidatePanel.kind === "result" && <div className="space-y-4"><div className="grid grid-cols-3 gap-4">{[["固定得分", competitionScore(activeCandidate, data).fixed ?? "--"], ["浮动得分", competitionScore(activeCandidate, data).floating ?? "--"], ["总得分", competitionScore(activeCandidate, data).total]].map(([label, score]) => <div key={label} className="border border-neutral-200 rounded-[4px] p-4"><p className="text-xs text-neutral-500 mb-2">{label}</p><p className="font-semibold text-xl">{score}</p></div>)}</div><div className="border border-neutral-200 rounded-[4px] p-4 space-y-3 text-neutral-600"><p>提交文件：{activeCandidate.file || "暂无提交文件"}</p><p>评测报告：{activeCandidate.report || "暂无评测报告"}</p></div><button className={actionClass} onClick={() => setCandidatePanel({ id: activeCandidate.id, kind: "events" })}>查看得分事件</button></div>}
         </div> : checkEditor ? <CompetitionCheckForm value={checkEditor} isEditing={data.checks.some(item => item.id === checkEditor.id)} error={error} onChange={value => { setCheckEditor(value); setError(""); }} onSubmit={saveCheck} /> : checkDetail ? <div className="border border-neutral-200 rounded-[4px] overflow-hidden"><h3 className="px-4 py-3 bg-neutral-50 border-b border-neutral-200 font-semibold">{checkDetail.name}</h3><div className="p-4 space-y-4"><p className="text-neutral-500">{checkDetail.description}</p><pre className="whitespace-pre-wrap break-words rounded bg-neutral-50 border border-neutral-100 p-4 text-xs leading-6 text-neutral-700 font-mono">{checkDetail.content}</pre><p className="text-xs text-neutral-400">更新时间：{checkDetail.updatedAt}</p></div></div>
         : extensionTargets ? <form id="competition-extension-form" className="max-w-[680px] space-y-5" onSubmit={event => {

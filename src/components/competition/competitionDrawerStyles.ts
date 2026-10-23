@@ -18,4 +18,8 @@ export const competitionDrawerStyles = {
   inactiveTab: "border-transparent text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50/50",
   card: "border border-neutral-200 rounded-[4px] bg-white overflow-hidden",
   table: "border border-neutral-200 rounded-[4px] overflow-x-auto",
+  tableHeader: "bg-neutral-50 border-b border-neutral-200 text-neutral-500 text-xs font-medium",
+  tableRow: "border-b border-neutral-100 last:border-0 hover:bg-neutral-50/50 transition-colors text-xs",
+  tableCell: "px-3 py-3 text-neutral-600",
+  action: "text-[#fa541c] hover:text-[#e84a15] text-xs font-semibold cursor-pointer whitespace-nowrap transition-colors",
 };

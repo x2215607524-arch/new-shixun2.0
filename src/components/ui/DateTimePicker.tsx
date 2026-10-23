@@ -3,13 +3,14 @@ import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, X, ChevronD
 import { cn } from "@/lib/utils"
 
 export interface DateTimePickerProps {
-  value: string // expected format 'YYYY-MM-DDTHH:mm'
+  value: string // expected format 'YYYY-MM-DDTHH:mm' or 'YYYY-MM-DDTHH:mm:ss'
   onChange: (value: string) => void
   placeholder?: string
   className?: string
   disabled?: boolean
   align?: 'left' | 'right'
   showPresets?: boolean
+  showSeconds?: boolean
   id?: string
   label?: string
   invalid?: boolean
@@ -24,6 +25,7 @@ export function DateTimePicker({
   disabled = false,
   align = "right",
   showPresets = true,
+  showSeconds = false,
   id,
   label,
   invalid,
@@ -36,13 +38,15 @@ export function DateTimePicker({
   const [viewYear, setViewYear] = useState<number>(new Date().getFullYear())
   const [viewMonth, setViewMonth] = useState<number>(new Date().getMonth()) // 0-11
   
-  // Selected hour/minute state
+  // Selected hour/minute/second state
   const [selectedHour, setSelectedHour] = useState<number>(0)
   const [selectedMinute, setSelectedMinute] = useState<number>(0)
+  const [selectedSecond, setSelectedSecond] = useState<number>(0)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const hourListRef = useRef<HTMLDivElement>(null)
   const minuteListRef = useRef<HTMLDivElement>(null)
+  const secondListRef = useRef<HTMLDivElement>(null)
 
   // Parse value prop when it changes or when modal opens
   useEffect(() => {
@@ -55,6 +59,7 @@ export function DateTimePicker({
         setViewMonth(parsed.getMonth())
         setSelectedHour(parsed.getHours())
         setSelectedMinute(parsed.getMinutes())
+        setSelectedSecond(parsed.getSeconds())
         return
       }
     }
@@ -62,7 +67,7 @@ export function DateTimePicker({
     setSelectedDate(null)
   }, [value, isOpen])
 
-  // Scroll active hour/minute into view when dropdown is opened
+  // Scroll active hour/minute/second into view when dropdown is opened
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => {
@@ -78,10 +83,16 @@ export function DateTimePicker({
             selectedMinEl.scrollIntoView({ block: 'nearest', behavior: 'auto' })
           }
         }
+        if (showSeconds && secondListRef.current) {
+          const selectedSecEl = secondListRef.current.querySelector('[data-selected="true"]')
+          if (selectedSecEl) {
+            selectedSecEl.scrollIntoView({ block: 'nearest', behavior: 'auto' })
+          }
+        }
       }, 50)
       return () => clearTimeout(timer)
     }
-  }, [isOpen])
+  }, [isOpen, showSeconds])
 
   // Close popup when clicking outside
   useEffect(() => {
@@ -100,13 +111,14 @@ export function DateTimePicker({
     return val.replace("T", " ")
   }
 
-  const formatToValueString = (date: Date, hour: number, min: number): string => {
+  const formatToValueString = (date: Date, hour: number, min: number, sec = 0): string => {
     const y = date.getFullYear()
     const m = String(date.getMonth() + 1).padStart(2, "0")
     const d = String(date.getDate()).padStart(2, "0")
     const h = String(hour).padStart(2, "0")
     const M = String(min).padStart(2, "0")
-    return `${y}-${m}-${d}T${h}:${M}`
+    const s = String(sec).padStart(2, "0")
+    return showSeconds ? `${y}-${m}-${d}T${h}:${M}:${s}` : `${y}-${m}-${d}T${h}:${M}`
   }
 
   // Quick preset selections
@@ -205,16 +217,17 @@ export function DateTimePicker({
     setViewMonth(date.getMonth())
     setSelectedHour(date.getHours())
     setSelectedMinute(date.getMinutes())
+    setSelectedSecond(date.getSeconds())
     
     // Directly apply the preset selection
-    const formattedVal = formatToValueString(date, date.getHours(), date.getMinutes())
+    const formattedVal = formatToValueString(date, date.getHours(), date.getMinutes(), date.getSeconds())
     onChange(formattedVal)
     setIsOpen(false)
   }
 
   const handleConfirm = () => {
     const targetDate = selectedDate || new Date()
-    const formattedVal = formatToValueString(targetDate, selectedHour, selectedMinute)
+    const formattedVal = formatToValueString(targetDate, selectedHour, selectedMinute, selectedSecond)
     onChange(formattedVal)
     setIsOpen(false)
   }
@@ -245,6 +258,7 @@ export function DateTimePicker({
 
   const hours = Array.from({ length: 24 }, (_, i) => i)
   const minutes = Array.from({ length: 60 }, (_, i) => i)
+  const seconds = Array.from({ length: 60 }, (_, i) => i)
 
   return (
     <div ref={containerRef} className={cn("relative w-full", className)} onKeyDown={event => {
@@ -306,7 +320,7 @@ export function DateTimePicker({
       {isOpen && (
         <div className={cn(
           "absolute top-[calc(100%+6px)] z-50 bg-white border border-orange-100 rounded-2xl shadow-xl shadow-orange-500/5 backdrop-blur-md p-4 mt-1 flex flex-col animate-in fade-in slide-in-from-top-2 duration-200",
-          showPresets ? "w-[500px]" : "w-[410px]",
+          showPresets ? (showSeconds ? "w-[560px]" : "w-[500px]") : (showSeconds ? "w-[470px]" : "w-[410px]"),
           align === "left" ? "left-0" : "right-0"
         )} role="dialog" aria-label={label ? `选择${label}` : '选择日期和时间'}>
           {/* Main Selectors Layout: Calendar | Time Picker | Presets */}
@@ -420,6 +434,33 @@ export function DateTimePicker({
                   ))}
                 </div>
               </div>
+
+              {showSeconds && (
+                <div className="flex flex-col items-center">
+                  <span className="text-[11px] font-bold text-neutral-400 mb-1.5 flex items-center gap-0.5"><Clock className="w-3 h-3"/> 秒</span>
+                  <div
+                    ref={secondListRef}
+                    className="h-[210px] w-11 overflow-y-auto flex flex-col gap-1 pr-1 custom-scrollbar scroll-smooth"
+                  >
+                    {seconds.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        data-selected={selectedSecond === s}
+                        onClick={() => setSelectedSecond(s)}
+                        className={cn(
+                          "h-7 w-full shrink-0 flex items-center justify-center text-[12px] rounded-md transition-colors cursor-pointer border-0 bg-transparent",
+                          selectedSecond === s
+                            ? "bg-[#fa541c] text-white font-bold"
+                            : "text-neutral-600 hover:bg-orange-50 hover:text-[#fa541c]"
+                        )}
+                      >
+                        {String(s).padStart(2, "0")}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 3. Quick Presets Panel */}
@@ -450,7 +491,7 @@ export function DateTimePicker({
                   已选：
                   <span className="text-[#fa541c] font-semibold">
                     {formatDisplay(
-                      formatToValueString(selectedDate, selectedHour, selectedMinute)
+                      formatToValueString(selectedDate, selectedHour, selectedMinute, selectedSecond)
                     )}
                   </span>
                 </>

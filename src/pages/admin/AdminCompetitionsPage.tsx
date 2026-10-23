@@ -12,6 +12,7 @@ import { competitionDrawerStyles as drawerStyles } from "@/components/competitio
 import CompetitionFormDrawer, { CompetitionFormValues } from "@/components/competition/CompetitionFormDrawer";
 import CompetitionOperationsDrawer from "@/components/competition/CompetitionOperationsDrawer";
 import { CompetitionOperationData, CompetitionOperationMode, createCompetitionOperationData } from "@/components/competition/competitionOperations";
+import { useNavigate } from "react-router-dom";
 
 // --- Types & Data Interfaces ---
 
@@ -69,16 +70,56 @@ interface LeaderboardRecord {
   codeReport: string;
 }
 
+// --- Date Time Helpers for Second Precision ---
+
+function normalizeDateTimeString(dt?: string, defaultTime = "00:00:00") {
+  if (!dt) return "";
+  const trimmed = dt.trim().replace("T", " ");
+  if (!trimmed) return "";
+  if (trimmed.includes(" ")) {
+    const [d, t = ""] = trimmed.split(" ");
+    const parts = (t || defaultTime).split(":");
+    const hh = (parts[0] || "00").padStart(2, "0");
+    const mm = (parts[1] || "00").padStart(2, "0");
+    const ss = (parts[2] || "00").padStart(2, "0");
+    return `${d} ${hh}:${mm}:${ss}`;
+  }
+  return `${trimmed} ${defaultTime}`;
+}
+
+function getCurrentDateTimeSecond() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+}
+
+function renderDateTimeCell(dtStr?: string, defaultTime = "00:00:00") {
+  if (!dtStr || dtStr === "—") return <span className="text-neutral-400">—</span>;
+  const normalized = normalizeDateTimeString(dtStr, defaultTime);
+  const [date, time] = normalized.split(" ");
+  return (
+    <div>
+      <div>{date}</div>
+      <div className="text-xs text-neutral-400 mt-1 font-mono">{time || defaultTime}</div>
+    </div>
+  );
+}
+
 // --- Initial Mock Database ---
 
 const initialCompetitions: Competition[] = [
   { 
     id: "comp-1",
-    visible: true, creator: "运营管理员", createdAt: "2026-02-12 14:30",
+    visible: true, creator: "运营管理员", createdAt: "2026-02-12 14:30:00",
     name: "2026年智云杯大语言模型应用创新赛", 
     type: "大模型开发", 
     status: "进行中", 
-    duration: "2026-03-01 至 2026-05-31", 
+    duration: "2026-03-01 09:00:00 至 2026-05-31 18:00:00", 
     teamsCount: 452, 
     participants: 1356, 
     description: "基于主流开源大语言模型，面向全国高校开展大模型应用创新与微调开发对抗，覆盖Agent框架开发、RAG语义重排调优等多维实战赛道。", 
@@ -90,11 +131,11 @@ const initialCompetitions: Competition[] = [
   },
   { 
     id: "comp-2",
-    visible: true, creator: "运营管理员", createdAt: "2026-03-01 09:20",
+    visible: true, creator: "运营管理员", createdAt: "2026-03-01 09:20:00",
     name: "医疗影像肺部病灶分割挑战赛", 
     type: "计算机视觉", 
     status: "进行中", 
-    duration: "2026-03-15 至 2026-04-30", 
+    duration: "2026-03-15 08:30:00 至 2026-04-30 18:00:00", 
     teamsCount: 320, 
     participants: 840, 
     description: "针对多模态医学图像，利用高维卷积神经网络与Transformer模型对典型肺部病灶进行高精度分割，比对重合度指标IoU。", 
@@ -106,11 +147,11 @@ const initialCompetitions: Competition[] = [
   },
   { 
     id: "comp-3",
-    visible: true, creator: "运营管理员", createdAt: "2025-11-15 10:00",
+    visible: true, creator: "运营管理员", createdAt: "2025-11-15 10:00:00",
     name: "金融风控非平衡样本分类预测算法赛", 
     type: "机器学习", 
     status: "已结束", 
-    duration: "2025-12-01 至 2026-02-28", 
+    duration: "2025-12-01 09:00:00 至 2026-02-28 20:00:00", 
     teamsCount: 890, 
     participants: 2200, 
     description: "通过海量金融交易流水，在高度不平衡的欺诈样本集中，设计高泛化性的机器学习分类器，精准识别潜在风险交易。", 
@@ -122,11 +163,11 @@ const initialCompetitions: Competition[] = [
   },
   { 
     id: "comp-4",
-    visible: true, creator: "运营管理员", createdAt: "2026-03-20 16:15",
+    visible: true, creator: "运营管理员", createdAt: "2026-03-20 16:15:00",
     name: "智能客服多轮多意图对话评测赛", 
     type: "自然语言处理", 
     status: "报名中", 
-    duration: "2026-04-01 至 2026-06-30", 
+    duration: "2026-04-01 10:00:00 至 2026-06-30 22:00:00", 
     teamsCount: 150, 
     participants: 450, 
     description: "参赛者需要设计并部署高并发、高准确率的多意图对话树提取与大模型编排链路，以通过极其苛刻的多轮人机交互压力测试。", 
@@ -138,11 +179,11 @@ const initialCompetitions: Competition[] = [
   },
   { 
     id: "comp-5",
-    visible: true, creator: "运营管理员", createdAt: "2026-05-18 11:40",
+    visible: true, creator: "运营管理员", createdAt: "2026-05-18 11:40:00",
     name: "第三届网络安全云原生微服务渗透对抗赛", 
     type: "安全对抗", 
     status: "筹备中", 
-    duration: "2026-07-01 至 2026-07-31", 
+    duration: "2026-07-01 09:00:00 至 2026-07-31 18:00:00", 
     teamsCount: 0, 
     participants: 0, 
     description: "本届赛事聚焦云原生微服务集群的边界防御与横向移动渗透。参赛队伍在沙箱中，需要快速找出多实例环境下的逻辑越权与依赖项漏洞并提交PoC并提报。", 
@@ -237,6 +278,7 @@ const initialLeaderboards: Record<string, LeaderboardRecord[]> = {
 };
 
 export default function AdminCompetitionsPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"overview" | "list" | "review" | "teams" | "scores">("list");
 
   // --- Dynamic State Managers ---
@@ -321,9 +363,13 @@ export default function AdminCompetitionsPage() {
   };
 
   const handleSaveCompetition = (values: CompetitionFormValues) => {
+    const startFormatted = normalizeDateTimeString(values.startAt, "09:00:00");
+    const endFormatted = normalizeDateTimeString(values.endAt, "18:00:00");
     const fields = {
       ...values,
-      duration: `${values.startAt.replace("T", " ")} 至 ${values.endAt.replace("T", " ")}`
+      startAt: startFormatted,
+      endAt: endFormatted,
+      duration: `${startFormatted} 至 ${endFormatted}`
     };
     if (drawerMode === "create") {
       const newId = `comp-${Date.now()}`;
@@ -331,7 +377,7 @@ export default function AdminCompetitionsPage() {
         ...fields, id: newId, status: "筹备中", teamsCount: 0,
         format: "团队赛 (最大5人)", ruleMaxSubmissions: 5, ruleFiles: "zip",
         ruleGpu: "50 GPU小时", evalMetric: "Accuracy", visible: true,
-        creator: "运营管理员", createdAt: new Date().toLocaleString("sv-SE").slice(0, 16)
+        creator: "运营管理员", createdAt: getCurrentDateTimeSecond()
       };
       setCompetitions(previous => [newComp, ...previous]);
       setCompSearch("");
@@ -369,7 +415,7 @@ export default function AdminCompetitionsPage() {
       name: app.contestName,
       type: "大模型开发", // default type matching typical GNN context
       status: "筹备中",
-      duration: "2026-06-15 至 2026-08-15",
+      duration: "2026-06-15 09:00:00 至 2026-08-15 18:00:00",
       teamsCount: 0,
       participants: 0,
       description: app.description,
@@ -378,7 +424,7 @@ export default function AdminCompetitionsPage() {
       ruleFiles: "zip",
       ruleGpu: "50 GPU小时",
       evalMetric: "AUC",
-      visible: true, creator: app.teacher, createdAt: new Date().toLocaleString("sv-SE").slice(0, 16)
+      visible: true, creator: app.teacher, createdAt: getCurrentDateTimeSecond()
     };
 
     setCompetitions([newComp, ...competitions]);
@@ -480,13 +526,13 @@ export default function AdminCompetitionsPage() {
   };
   const openManagementDialog = (comp: Competition, mode: "checks" | "scoring" | "proctor" | "cockpit") => {
     setActionMenu(null);
-    if (mode === "cockpit") setManagementDialog({ id: comp.id, mode });
+    if (mode === "cockpit") navigate(`/admin/competitions/${comp.id}/cockpit`);
     else openOperations(comp, mode);
   };
 
   const handleCopyCompetition = (comp: Competition) => {
     const id = `comp-${Date.now()}`;
-    setCompetitions(prev => [{ ...comp, id, name: `${comp.name}（副本）`, status: "筹备中", visible: false, teamsCount: 0, participants: 0, creator: "运营管理员", createdAt: new Date().toLocaleString("sv-SE").slice(0, 16) }, ...prev]);
+    setCompetitions(prev => [{ ...comp, id, name: `${comp.name}（副本）`, status: "筹备中", visible: false, teamsCount: 0, participants: 0, creator: "运营管理员", createdAt: getCurrentDateTimeSecond() }, ...prev]);
     setTeams(prev => ({ ...prev, [id]: [] }));
     setLeaderboards(prev => ({ ...prev, [id]: [] }));
     if (operationsData[comp.id]) setOperationsData(prev => ({ ...prev, [id]: { ...structuredClone(prev[comp.id]), candidates: [] } }));
@@ -709,9 +755,9 @@ export default function AdminCompetitionsPage() {
                         <td className="px-3 py-4"><span className={cn("px-2 py-0.5 text-[12px] rounded-[4px] border", comp.status === "进行中" ? "bg-green-50 text-green-600 border-green-200" : comp.status === "报名中" ? "bg-blue-50 text-blue-600 border-blue-200" : comp.status === "筹备中" ? "bg-amber-50 text-amber-600 border-amber-200" : "bg-red-50 text-red-500 border-red-200")}>{comp.status}</span></td>
                         <td className="px-3 py-4 text-neutral-600">{comp.participants.toLocaleString()}</td>
                         <td className="px-3 py-4 text-neutral-600">{comp.creator}</td>
-                        <td className="px-3 py-4 text-neutral-600">{comp.duration.split(" 至 ")[0]}</td>
-                        <td className="px-3 py-4 text-neutral-600">{comp.duration.split(" 至 ")[1] || "—"}</td>
-                        <td className="px-3 py-4 text-neutral-600"><div>{comp.createdAt.split(" ")[0]}</div><div className="text-xs text-neutral-400 mt-1">{comp.createdAt.split(" ")[1]}</div></td>
+                        <td className="px-3 py-4 text-neutral-600">{renderDateTimeCell(comp.startAt || comp.duration.split(" 至 ")[0], "09:00:00")}</td>
+                        <td className="px-3 py-4 text-neutral-600">{renderDateTimeCell(comp.endAt || comp.duration.split(" 至 ")[1], "18:00:00")}</td>
+                        <td className="px-3 py-4 text-neutral-600">{renderDateTimeCell(comp.createdAt, "00:00:00")}</td>
                         <td className="pl-3 pr-6 py-4 sticky right-0 bg-white group-hover:bg-[#fdfdfd]">
                           <div className="flex items-center gap-2.5">
                             <button className={actionClass} onClick={() => openOperations(comp, "grading")}>批阅</button>

@@ -152,6 +152,32 @@ const competitions: Competition[] = [
   }
 ];
 
+type CompetitionTableRow = {
+  id: string;
+  name: string;
+  session?: string;
+  venue?: string;
+  status: "进行中" | "已结束";
+  startTime: string;
+  endTime: string;
+  candidateStatus: "未交卷" | "已交卷" | "未登录";
+  score: number;
+  canViewPaper?: boolean;
+};
+
+const aiCompetitionRows: CompetitionTableRow[] = [
+  { id: "ai-table-1", name: "竞赛", session: "肖菲-test", venue: "--", status: "进行中", startTime: "2025-07-02 16:07", endTime: "--", candidateStatus: "未交卷", score: 0 },
+  { id: "ai-table-2", name: "111", session: "11", venue: "--", status: "已结束", startTime: "2025-06-19 17:59", endTime: "2025-06-19 18:08", candidateStatus: "已交卷", score: 0, canViewPaper: true },
+  { id: "ai-table-3", name: "容器", session: "容器", venue: "--", status: "已结束", startTime: "2024-08-22 15:54", endTime: "2024-08-26 16:47", candidateStatus: "未登录", score: 0, canViewPaper: true },
+];
+
+const cloudCompetitionRows: CompetitionTableRow[] = [
+  { id: "cloud-table-1", name: "2025年上海职工职业技能系列竞赛暨中国技协职业技能竞赛——云计算技能大赛上海选拔赛", status: "已结束", startTime: "2025-10-29 17:04", endTime: "2025-10-29 19:03", candidateStatus: "已交卷", score: 0 },
+  { id: "cloud-table-2", name: "test-6", status: "已结束", startTime: "2025-07-16 16:24", endTime: "2025-07-16 23:20", candidateStatus: "已交卷", score: 0 },
+  { id: "cloud-table-3", name: "test-5", status: "已结束", startTime: "2025-07-16 14:00", endTime: "2025-07-16 18:57", candidateStatus: "已交卷", score: 0 },
+  { id: "cloud-table-4", name: "私有云竞赛-肖菲菲验证6", status: "已结束", startTime: "2025-07-11 10:07", endTime: "2025-07-11 18:03", candidateStatus: "已交卷", score: 0 },
+];
+
 
 export default function CompetitionList() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -198,6 +224,17 @@ export default function CompetitionList() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  const referenceRows = activeCategory === "ai" ? aiCompetitionRows : cloudCompetitionRows;
+  const filteredReferenceRows = referenceRows.filter(row => {
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch = !query || [row.name, row.session, row.venue].some(value => value?.toLowerCase().includes(query));
+    const matchesStatus = activeStatus === "all" ||
+      (activeStatus === "ongoing" && row.status === "进行中") ||
+      (activeStatus === "ended" && row.status === "已结束");
+    return matchesSearch && matchesStatus;
+  });
+  const visibleCompetitionCount = activeCategory === "all" ? filteredCompetitions.length : filteredReferenceRows.length;
+
   const handleRegister = (comp: Competition) => {
     if (comp.status === "已结束" || registeredComps.includes(comp.id)) return;
     if (!competitionId) rememberListPosition();
@@ -212,7 +249,6 @@ export default function CompetitionList() {
     });
   };
 
-  const totalPrize = competitions.reduce((sum, comp) => sum + Number(comp.prize.replace(/[^0-9]/g, "")), 0);
   const scrollToCompetitions = () => document.getElementById("competition-list")?.scrollIntoView({ behavior: "smooth" });
   const resetFilters = () => {
     setSearchQuery("");
@@ -249,8 +285,7 @@ export default function CompetitionList() {
           {[
             { label: "精选实战赛事", value: competitions.length, unit: "场" },
             { label: "赛事火热进行", value: competitions.filter(comp => comp.status === "进行中").length, unit: "场" },
-            { label: "累计参赛队伍", value: competitions.reduce((sum, comp) => sum + comp.participants, 0).toLocaleString(), unit: "队" },
-            { label: "赛事总奖金池", value: totalPrize / 10000, unit: "万元" },
+            { label: "累计参赛人数", value: competitions.reduce((sum, comp) => sum + comp.participants, 0).toLocaleString(), unit: "人" },
           ].map((metric, index) => (
             <div key={metric.label} className={cn("competition-stat text-center", index > 0 && "sm:border-l sm:border-[#f0e4dc]")}>
               <p className="text-[28px] font-bold leading-none tracking-tight tabular-nums text-[#594031] sm:text-[36px]">{metric.value}<span className="ml-1.5 text-xs font-normal text-[#a38b7d]">{metric.unit}</span></p>
@@ -266,7 +301,7 @@ export default function CompetitionList() {
               <h2 className="text-2xl md:text-[28px] font-bold tracking-tight text-[#392b24]">发现你的下一场<span className="text-[#f3743f]">挑战</span></h2>
               <p className="mt-2 text-sm sm:text-base text-slate-500">选择感兴趣的赛道，用实战检验所学。</p>
             </div>
-            <span aria-live="polite" className="text-sm text-slate-500">共 <span className="font-semibold text-slate-900">{filteredCompetitions.length}</span> 场赛事</span>
+            <span aria-live="polite" className="text-sm text-slate-500">共 <span className="font-semibold text-slate-900">{visibleCompetitionCount}</span> 场赛事</span>
           </div>
 
           <div className="mb-6 rounded-2xl border border-[#f2e8e0] bg-white p-4 sm:p-5">
@@ -274,8 +309,8 @@ export default function CompetitionList() {
               <div className="flex flex-wrap gap-2" role="group" aria-label="赛事赛道">
                 {[
                   { value: "all" as const, label: "全部赛道" },
-                  { value: "ai" as const, label: "AI 大模型" },
-                  { value: "cloud" as const, label: "云原生 / 安全" },
+                  { value: "ai" as const, label: "人工智能竞赛" },
+                  { value: "cloud" as const, label: "云计算竞赛" },
                 ].map(category => (
                   <button key={category.value} onClick={() => setActiveCategory(category.value)} aria-pressed={activeCategory === category.value}
                     className={cn("competition-skew-button px-3 sm:px-4 py-2.5 text-sm font-medium transition-colors", activeCategory === category.value ? "competition-primary text-white" : "text-slate-500 hover:bg-orange-50 hover:text-slate-800")}><span className="competition-skew-label">{category.label}</span></button>
@@ -302,12 +337,48 @@ export default function CompetitionList() {
             </div>
           </div>
 
-          {filteredCompetitions.length === 0 ? (
+          {(activeCategory === "all" ? filteredCompetitions.length === 0 : filteredReferenceRows.length === 0) ? (
             <div className="flex flex-col items-center rounded-2xl border border-slate-100 bg-white px-5 py-14 text-center">
               <Compass className="mb-4 size-12 text-orange-200" />
               <h3 className="font-semibold text-slate-800">没有找到符合条件的赛事</h3>
               <p className="mt-2 text-sm text-slate-500">试试其他关键词，或重新选择赛道与状态。</p>
               <Button variant="outline" onClick={resetFilters} className="mt-5">重置筛选</Button>
+            </div>
+          ) : activeCategory !== "all" ? (
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[1050px] border-collapse text-left text-sm text-slate-600">
+                  <thead className="bg-[#fffaf7] text-slate-500">
+                    <tr>
+                      <th className="border-b border-r border-slate-200 px-4 py-4 font-semibold">竞赛名称</th>
+                      {activeCategory === "ai" && <><th className="border-b border-r border-slate-200 px-4 py-4 font-semibold">场次名称</th><th className="border-b border-r border-slate-200 px-4 py-4 font-semibold">考场</th><th className="border-b border-r border-slate-200 px-4 py-4 font-semibold">场次状态</th></>}
+                      {activeCategory === "cloud" && <th className="border-b border-r border-slate-200 px-4 py-4 font-semibold">进行状态</th>}
+                      <th className="border-b border-r border-slate-200 px-4 py-4 font-semibold">开始时间</th>
+                      <th className="border-b border-r border-slate-200 px-4 py-4 font-semibold">结束时间</th>
+                      <th className="border-b border-r border-slate-200 px-4 py-4 font-semibold">考生状态</th>
+                      <th className="border-b border-r border-slate-200 px-4 py-4 font-semibold">考试成绩</th>
+                      <th className="border-b border-slate-200 px-4 py-4 font-semibold">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredReferenceRows.map(row => (
+                      <tr key={row.id} className="transition-colors hover:bg-orange-50/40">
+                        <td className="max-w-[360px] border-b border-r border-slate-200 px-4 py-4 leading-7 text-slate-700">{row.name}</td>
+                        {activeCategory === "ai" && <><td className="border-b border-r border-slate-200 px-4 py-4">{row.session}</td><td className="border-b border-r border-slate-200 px-4 py-4">{row.venue}</td><td className="border-b border-r border-slate-200 px-4 py-4">{row.status}</td></>}
+                        {activeCategory === "cloud" && <td className="border-b border-r border-slate-200 px-4 py-4">{row.status}</td>}
+                        <td className="whitespace-nowrap border-b border-r border-slate-200 px-4 py-4">{row.startTime}</td>
+                        <td className="whitespace-nowrap border-b border-r border-slate-200 px-4 py-4">{row.endTime}</td>
+                        <td className="whitespace-nowrap border-b border-r border-slate-200 px-4 py-4">{row.candidateStatus}</td>
+                        <td className="border-b border-r border-slate-200 px-4 py-4 tabular-nums">{row.score}</td>
+                        <td className="whitespace-nowrap border-b border-slate-200 px-4 py-4">
+                          <button className="font-semibold text-[#fa541c] transition-colors hover:text-[#d4380d]">开始竞赛</button>
+                          {row.canViewPaper && <><span className="mx-2 text-slate-200">|</span><button className="font-semibold text-[#fa541c] transition-colors hover:text-[#d4380d]">查看试卷</button></>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : (
             <div className="flex flex-col gap-4 sm:gap-5">

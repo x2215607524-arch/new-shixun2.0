@@ -121,11 +121,8 @@ export default function DashboardLayout({ type }: DashboardLayoutProps) {
 
   const adminItems: NavItem[] = [
     { title: "人工智能", icon: Brain, href: "/admin/ai" },
-    { title: "安全运维", icon: Shield, href: "/admin/security" },
     { title: "公有云", icon: Cloud, href: "/admin/public-cloud" },
-    { title: "私有云", icon: Server, href: "/admin/private-cloud" },
-    { title: "IT", icon: Laptop, href: "/admin/it" },
-    { title: "IP", icon: Network, href: "/admin/ip" },
+    { title: "网络仿真", icon: Network, href: "/admin/network-simulation" },
     { title: "审核中心", icon: CheckSquare, href: "/admin/audit" },
     { title: "租户管理", icon: Building, href: "/admin/tenants" },
     { title: "ai配额管理", icon: Activity, href: "/admin/ai-quota" },
@@ -136,11 +133,8 @@ export default function DashboardLayout({ type }: DashboardLayoutProps) {
 
   const mergedModules = [
     { title: "人工智能", icon: Brain, href: "/admin/ai" },
-    { title: "安全运维", icon: Shield, href: "/admin/security" },
     { title: "公有云", icon: Cloud, href: "/admin/public-cloud" },
-    { title: "私有云", icon: Server, href: "/admin/private-cloud" },
-    { title: "IT", icon: Laptop, href: "/admin/it" },
-    { title: "IP", icon: Network, href: "/admin/ip" },
+    { title: "网络仿真", icon: Network, href: "/admin/network-simulation" },
   ];
 
   const activeModule = mergedModules.find(m => 
@@ -260,7 +254,7 @@ export default function DashboardLayout({ type }: DashboardLayoutProps) {
                   {items
                     .filter(item => {
                       if (type === "admin") {
-                        return !["人工智能", "安全运维", "公有云", "私有云", "IT", "IP"].includes(item.title);
+                        return !["人工智能", "公有云", "网络仿真"].includes(item.title);
                       }
                       return true;
                     })
