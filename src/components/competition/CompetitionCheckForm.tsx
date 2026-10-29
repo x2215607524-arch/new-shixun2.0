@@ -22,8 +22,9 @@ export default function CompetitionCheckForm({ value, isEditing, error, onChange
   const categoryLabel = isRequest ? "模拟请求类型" : value.category === "environment" ? "环境检查项" : "自定义模拟请求检查项";
   const contentLabel = isRequest ? "模拟请求生成和验证脚本" : advanced ? "环境检查项内容" : "检查内容";
   const times = value.executionTimes ?? [];
+  const fieldLayout = cn("grid grid-cols-1 gap-2 sm:gap-4 items-start", value.category === "custom" ? "sm:grid-cols-[180px_minmax(0,1fr)]" : isRequest ? "sm:grid-cols-[160px_minmax(0,1fr)]" : "sm:grid-cols-[100px_minmax(0,1fr)]");
   const update = <K extends keyof CompetitionCheck>(key: K, next: CompetitionCheck[K]) => onChange({ ...value, [key]: next });
-  const field = (id: string, label: string, children: React.ReactNode, required = true) => <div className="grid grid-cols-1 sm:grid-cols-[100px_minmax(0,1fr)] gap-2 sm:gap-4 items-start">
+  const field = (id: string, label: string, children: React.ReactNode, required = true) => <div className={fieldLayout}>
     <label htmlFor={id} className={cn(styles.label, "sm:pt-2 sm:whitespace-nowrap")}>
       {required && <span className="text-[#fa541c] mr-1">*</span>}{label}
     </label><div className="min-w-0">{children}</div>
@@ -58,13 +59,13 @@ export default function CompetitionCheckForm({ value, isEditing, error, onChange
       {fileError && <p role="alert" className="text-red-500 text-xs">{fileError}</p>}
     </div>, false)}
     {advanced && <>
-      <div className="grid grid-cols-1 sm:grid-cols-[100px_minmax(0,1fr)] gap-2 sm:gap-4 items-start">
+      <div className={fieldLayout}>
         <span id="competition-check-scoring-label" className={cn(styles.label, "sm:pt-2 sm:whitespace-nowrap")}><span className="text-[#fa541c] mr-1">*</span>判分类型</span>
         <div role="radiogroup" aria-labelledby="competition-check-scoring-label" className="flex flex-wrap items-center gap-x-8 gap-y-3 min-h-9">{([{ key: "fixed", label: "固定判分", hint: "计入本场竞赛的固定得分。" }, { key: "floating", label: "浮动判分", hint: "计入本场竞赛的浮动得分。" }] as const).map(item => <label key={item.key} className={cn("inline-flex items-center gap-2 cursor-pointer", value.scoringType === item.key ? "text-[#fa541c] font-semibold" : "text-neutral-600")}>
           <input type="radio" name="competition-check-scoring" value={item.key} checked={value.scoringType === item.key} onChange={() => update("scoringType", item.key)} className="w-4 h-4 accent-[#fa541c] cursor-pointer" /><span>{item.label}</span><span tabIndex={0} aria-label={`${item.label}说明：${item.hint}`} title={item.hint}><CircleHelp className="w-3.5 h-3.5 text-neutral-400" /></span>
         </label>)}</div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-[100px_minmax(0,1fr)] gap-2 sm:gap-4 items-start">
+      <div className={fieldLayout}>
         <span id="competition-check-times-label" className={cn(styles.label, "sm:pt-2 sm:whitespace-nowrap")}><span className="text-[#fa541c] mr-1">*</span>执行时间</span>
         <section aria-labelledby="competition-check-times-label" className="min-w-0 space-y-3">
           <div className="flex items-center justify-between gap-3"><h4 className="text-[13px] font-semibold text-neutral-800">执行时间</h4><button type="button" className={cn(styles.primary, "px-4 inline-flex items-center gap-1.5")} onClick={() => update("executionTimes", [...times, { id: crypto.randomUUID(), startAfterMinutes: 1, frequency: 1 }])}><Plus className="w-3.5 h-3.5" />添加</button></div>

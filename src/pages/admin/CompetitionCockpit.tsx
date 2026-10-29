@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { readCockpitConfigs } from "@/components/competition/CockpitManagement";
 import { Activity, ArrowLeft, Box, Cloud, Code2, Database, HardDrive, Network, Radar, ShieldCheck } from "lucide-react";
 import { PolarAngleAxis, PolarGrid, Radar as RadarArea, RadarChart, ResponsiveContainer } from "recharts";
 import "@/styles/competition-cockpit.css";
@@ -41,15 +42,27 @@ function CyberPanel({ title, children, className = "" }: { title: string; childr
 
 export default function CompetitionCockpit() {
   const navigate = useNavigate();
+  const { competitionId } = useParams();
+  const [searchParams] = useSearchParams();
+  const [configuration] = useState(() => readCockpitConfigs().find(item => item.competitionId === competitionId && (!searchParams.get("config") || item.id === searchParams.get("config"))));
   const [time, setTime] = useState(new Date());
   useEffect(() => { const timer = window.setInterval(() => setTime(new Date()), 1000); return () => window.clearInterval(timer); }, []);
   const clock = time.toLocaleString("sv-SE").replace("T", " ");
+  const start = configuration ? Date.parse(configuration.startAt.replace(" ", "T")) : NaN;
+  const end = configuration ? Date.parse(configuration.endAt.replace(" ", "T")) : NaN;
+  const ended = !Number.isFinite(end) || time.getTime() >= end;
+  const duration = (milliseconds: number) => {
+    const seconds = Math.max(0, Math.floor(milliseconds / 1000));
+    return [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60].map(value => String(value).padStart(2, "0"));
+  };
+  const countdown = ended ? ["已", "结", "束"] : duration((time.getTime() < start ? start : end) - time.getTime());
+  const elapsed = ended ? ["已", "结", "束"] : duration(Math.max(0, time.getTime() - start));
 
   return <main className="competition-cockpit">
     <div className="cockpit-grid" aria-hidden="true" />
     <header className="cockpit-header">
       <button onClick={() => navigate("/admin/competitions")} className="cockpit-back"><ArrowLeft />返回首页</button>
-      <h1>2023年上海职工职业技能系列竞赛-云计算竞赛</h1>
+      <h1>{configuration?.name || "2023年上海职工职业技能系列竞赛-云计算竞赛"}</h1>
       <time>{clock}</time>
     </header>
 
@@ -57,20 +70,20 @@ export default function CompetitionCockpit() {
       <section className="cockpit-intro">
         <div className="cockpit-tabs"><b>当前赛事</b><span>初赛数据</span></div>
         <CyberPanel title="赛事项目介绍">
-          <p>云计算技术作为当前信息技术领域的核心驱动力之一，对于上海数字化转型升级具有重要意义。通过推广云计算技术，可以有效提升企业数据处理效率、降低运营成本，并为企业创新提供强大的技术支持。云计算应用场景的创新也是推动产业发展的重要途径，可以催生出更多新业态、新模式。</p>
+          <p>{configuration?.introduction || "云计算技术作为当前信息技术领域的核心驱动力之一，对于上海数字化转型升级具有重要意义。通过推广云计算技术，可以有效提升企业数据处理效率、降低运营成本，并为企业创新提供强大的技术支持。云计算应用场景的创新也是推动产业发展的重要途径，可以催生出更多新业态、新模式。"}</p>
         </CyberPanel>
       </section>
 
       <section className="cockpit-kpis">
-        {[["4534", "初赛参加人数"], ["65", "初赛参加公司"], ["252", "复赛参加人数"], ["36", "复赛参加公司"]].map(([value, label]) => <div className="cockpit-kpi" key={label}><strong>{value}<small>{label.includes("人数") ? "人" : "个"}</small></strong><span>{label}</span></div>)}
+        {(configuration ? configuration.participation.map(row => [row.value, row.label]) : [["4534", "初赛参加人数"], ["65", "初赛参加公司"], ["252", "复赛参加人数"], ["36", "复赛参加公司"]]).map(([value, label], index) => <div className="cockpit-kpi" key={index}><strong>{value}<small>{label.includes("人数") ? "人" : "个"}</small></strong><span>{label}</span></div>)}
       </section>
 
       <section className="cockpit-left">
         <div className="cockpit-timers">
-          <div><h2>考试倒计时</h2><p><span>已</span><span>结</span><span>束</span></p></div>
-          <div><h2>考试持续时长</h2><p><span>已</span><span>结</span><span>束</span></p></div>
+          <div><h2>考试倒计时</h2><p>{countdown.map((value, index) => <span key={index}>{value}</span>)}</p></div>
+          <div><h2>考试持续时长</h2><p>{elapsed.map((value, index) => <span key={index}>{value}</span>)}</p></div>
         </div>
-        <CyberPanel title="复赛实时排名情况" className="cockpit-ranking">
+        <CyberPanel title={configuration?.ranking.label || "复赛实时排名情况"} className="cockpit-ranking">
           <div className="cockpit-podium">
             {[["5454", "王海英", "北京某互联科技有限公司", "gold"], ["5454", "周校民", "北京某教育科技有限公司", "violet"], ["5454", "郑子墨", "北京博睿汇志咨询顾问有限公司", "blue"]].map(([score, name, company, tone], index) => <article key={name} className={`podium-card ${tone}`}><b>{score}<small>分</small></b><em>No.{index + 1}</em><h3>{name}</h3><p>{company}</p></article>)}
           </div>

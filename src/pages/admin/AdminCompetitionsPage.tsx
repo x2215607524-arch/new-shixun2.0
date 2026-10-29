@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { competitionDrawerStyles as drawerStyles } from "@/components/competition/competitionDrawerStyles";
 import CompetitionFormDrawer, { CompetitionFormValues } from "@/components/competition/CompetitionFormDrawer";
 import CompetitionOperationsDrawer from "@/components/competition/CompetitionOperationsDrawer";
+import CockpitManagement from "@/components/competition/CockpitManagement";
 import CompetitionSelect from "@/components/competition/CompetitionSelect";
 import { CompetitionOperationData, CompetitionOperationMode, createCompetitionOperationData } from "@/components/competition/competitionOperations";
 import { useNavigate } from "react-router-dom";
@@ -568,7 +569,7 @@ function CloudAccountPanel({ onNotify }: { onNotify: (message: string) => void }
 
 export default function AdminCompetitionsPage() {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState<"cloud" | "competition">("competition");
+  const [activeSection, setActiveSection] = useState<"cloud" | "competition" | "cockpit">("competition");
   const [activeTab, setActiveTab] = useState<"overview" | "list" | "review" | "teams" | "scores">("list");
 
   // --- Dynamic State Managers ---
@@ -869,6 +870,7 @@ export default function AdminCompetitionsPage() {
             <Trophy className="w-4 h-4 shrink-0" />
             <span>竞赛管理</span>
           </button>
+          <button type="button" onClick={() => { setActiveSection("cockpit"); setActionMenu(null); }} className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-[14px] font-medium transition-colors cursor-pointer border-0 text-left", activeSection === "cockpit" ? "bg-[#fff2e8] text-[#fa541c] font-semibold" : "bg-transparent text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900")}><BarChart2 className="w-4 h-4 shrink-0" /><span>驾驶舱管理</span></button>
         </nav>
       </aside>
 
@@ -881,6 +883,7 @@ export default function AdminCompetitionsPage() {
         )}
 
         {activeSection === "cloud" && <CloudAccountPanel onNotify={triggerToast} />}
+        <div className={activeSection === "cockpit" ? "contents" : "hidden"}><CockpitManagement competitions={competitions} onNotify={triggerToast} /></div>
 
         <div className={activeSection === "competition" ? "contents" : "hidden"}>
         {activeTab !== "list" && <button onClick={() => setActiveTab("list")} className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-[#fa541c] cursor-pointer mb-5 self-start"><ChevronLeft className="w-4 h-4" />返回竞赛列表</button>}
