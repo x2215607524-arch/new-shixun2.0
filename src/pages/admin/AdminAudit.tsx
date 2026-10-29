@@ -691,6 +691,7 @@ const initialResources: Record<"course" | "project" | "question" | "paper" | "ai
 
 export default function AdminAudit() {
   const [activeMenu, setActiveMenu] = useState<"course" | "project" | "question" | "paper" | "ai_capacity" | "practice" | "dataset">("course");
+  const [activeBusinessTab, setActiveBusinessTab] = useState<"人工智能" | "网络仿真">("人工智能");
   const [activeStatusFilter, setActiveStatusFilter] = useState<"全部" | "待审核" | "已通过" | "已驳回">("全部");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -720,6 +721,20 @@ export default function AdminAudit() {
 
   const [resources, setResources] = useState<Record<string, AuditResource[]>>(initialResources);
   const activeList = resources[activeMenu] || [];
+  const supportsBusinessTabs = ["course", "project", "question", "paper"].includes(activeMenu);
+  const networkSimulationKeywords = /网络|路由|交换|拓扑|仿真|云原生|容器|Kubernetes|微服务|安全运维|VPC|子网/i;
+  const businessScopedList = supportsBusinessTabs
+    ? activeList.filter(item => {
+        const searchableContent = [
+          item.name,
+          item.details.meta,
+          item.details.content,
+          ...item.details.outline,
+        ].join(" ");
+        const isNetworkSimulation = networkSimulationKeywords.test(searchableContent);
+        return activeBusinessTab === "网络仿真" ? isNetworkSimulation : !isNetworkSimulation;
+      })
+    : activeList;
 
   // Review Drawer state
   const [reviewingItem, setReviewingItem] = useState<AuditResource | null>(null);
@@ -839,12 +854,7 @@ export default function AdminAudit() {
     triggerToast("已驳回申请，审核意见已安全投递到该校教师工作台。");
   };
 
-  // Counting pending requests for left badges
-  const getPendingCount = (key: "course" | "project" | "question" | "ai_capacity" | "practice" | "dataset") => {
-    return (resources[key] || []).filter(item => item.status === "待审核").length;
-  };
-
-  const filteredResources = activeList.filter(item => {
+  const filteredResources = businessScopedList.filter(item => {
     const matchesStatus = activeStatusFilter === "全部" || item.status === activeStatusFilter;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           item.creator.toLowerCase().includes(searchQuery.toLowerCase());
@@ -987,17 +997,47 @@ export default function AdminAudit() {
           <div className="flex items-center gap-3">
             <div className="bg-white px-3 py-1.5 rounded border border-neutral-border text-xs flex items-center gap-2">
               <span className="text-neutral-500 font-medium">总数:</span>
-              <span className="font-bold text-neutral-800">{activeList.length}</span>
+              <span className="font-bold text-neutral-800">{businessScopedList.length}</span>
             </div>
             <div className="bg-white px-3 py-1.5 rounded border border-neutral-border text-xs flex items-center gap-2">
               <span className="text-neutral-500 font-medium">待审核:</span>
-              <span className="font-bold text-[#fa541c]">{getPendingCount(activeMenu)}</span>
+              <span className="font-bold text-[#fa541c]">{businessScopedList.filter(item => item.status === "待审核").length}</span>
             </div>
           </div>
         </div>
 
         {/* Table and Toolbar Unified Module (Ref TeacherQuestions Style) */}
         <div className="bg-white rounded border border-neutral-border overflow-hidden flex-1 flex flex-col">
+          {supportsBusinessTabs && (
+            <div className="flex items-center gap-8 px-6 border-b border-neutral-border bg-white shrink-0" role="tablist" aria-label="业务类型">
+              {(["人工智能", "网络仿真"] as const).map(tab => (
+                <button
+                  key={tab}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeBusinessTab === tab}
+                  onClick={() => {
+                    setActiveBusinessTab(tab);
+                    setActiveStatusFilter("全部");
+                    setSearchQuery("");
+                    setCurrentPage(1);
+                    setSelectedItemIds([]);
+                  }}
+                  className={cn(
+                    "relative h-12 px-1 text-[14px] font-medium border-0 bg-transparent cursor-pointer transition-colors",
+                    activeBusinessTab === tab
+                      ? "text-[#fa541c] font-semibold"
+                      : "text-neutral-500 hover:text-neutral-800"
+                  )}
+                >
+                  {tab}
+                  {activeBusinessTab === tab && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#fa541c]" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
           {/* Integrated Toolbar Header Section */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4 border-b border-neutral-border/50 bg-white shrink-0">
             {/* Search Input bar & Filter */}

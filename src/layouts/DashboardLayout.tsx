@@ -87,21 +87,6 @@ export default function DashboardLayout({ type }: DashboardLayoutProps) {
     navigate('/login/user');
   };
 
-  const [isModuleOpen, setIsModuleOpen] = React.useState(false);
-  const moduleRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (moduleRef.current && !moduleRef.current.contains(event.target as Node)) {
-        setIsModuleOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   const userItems: NavItem[] = [
     { title: "首页", icon: LayoutDashboard, href: "/user" },
     { title: "最佳实践", icon: Star, href: "/user/practices" },
@@ -120,7 +105,6 @@ export default function DashboardLayout({ type }: DashboardLayoutProps) {
   ];
 
   const adminItems: NavItem[] = [
-    { title: "人工智能", icon: Brain, href: "/admin/ai" },
     { title: "公有云", icon: Cloud, href: "/admin/public-cloud" },
     { title: "网络仿真", icon: Network, href: "/admin/network-simulation" },
     { title: "审核中心", icon: CheckSquare, href: "/admin/audit" },
@@ -130,20 +114,6 @@ export default function DashboardLayout({ type }: DashboardLayoutProps) {
     { title: "权限管理", icon: Key, href: "/admin/permissions" },
     { title: "系统管理", icon: Settings, href: "/admin/system" },
   ];
-
-  const mergedModules = [
-    { title: "人工智能", icon: Brain, href: "/admin/ai" },
-    { title: "公有云", icon: Cloud, href: "/admin/public-cloud" },
-    { title: "网络仿真", icon: Network, href: "/admin/network-simulation" },
-  ];
-
-  const activeModule = mergedModules.find(m => 
-    location.pathname === m.href || location.pathname.startsWith(m.href + "/") || location.pathname.startsWith(m.href)
-  ) || mergedModules[0];
-
-  const isAnyModuleActive = mergedModules.some(m => 
-    location.pathname === m.href || location.pathname.startsWith(m.href + "/") || location.pathname.startsWith(m.href)
-  );
 
   const items = type === "user" ? userItems : adminItems;
 
@@ -207,50 +177,6 @@ export default function DashboardLayout({ type }: DashboardLayoutProps) {
               {/* Top Navigation */}
               {!isAnswering && (
                 <nav className="hidden md:flex items-center h-full gap-1">
-                  {type === "admin" && (
-                    <div className="relative h-full flex items-center mr-2" ref={moduleRef}>
-                      <div 
-                        className={cn(
-                          "h-full flex items-center gap-1.5 px-3 transition-colors cursor-pointer text-white font-medium relative hover:bg-white/10 rounded-md",
-                          isAnyModuleActive ? "text-white bg-white/10" : "text-gray-300 hover:text-white"
-                        )}
-                        onClick={() => setIsModuleOpen(!isModuleOpen)}
-                      >
-                        <span className="text-[14px]">人工智能</span>
-                        <ChevronDown className={cn("w-4 h-4 text-gray-400 transition-transform duration-200", isModuleOpen ? "rotate-180" : "")} />
-                        {isAnyModuleActive && (
-                          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#fa541c]" />
-                        )}
-                      </div>
-                      
-                      {/* Dropdown Menu listing all six modules */}
-                      {isModuleOpen && (
-                        <div className="absolute top-12 left-0 w-40 bg-[#1f1f1f] border border-gray-800 rounded-md shadow-xl py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                          <div className="flex flex-col">
-                            {mergedModules.map((mod) => {
-                              const isActive = location.pathname === mod.href || location.pathname.startsWith(mod.href + "/");
-                              return (
-                                  <Link 
-                                    key={mod.href}
-                                    to={mod.href} 
-                                    className={cn(
-                                      "flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors",
-                                      isActive 
-                                        ? "bg-white/5 text-[#fa541c] font-semibold" 
-                                        : "text-gray-300 hover:text-white hover:bg-white/10"
-                                    )}
-                                    onClick={() => setIsModuleOpen(false)}
-                                  >
-                                    {mod.title}
-                                  </Link>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
                   {items
                     .filter(item => {
                       if (type === "admin") {
@@ -347,11 +273,12 @@ export default function DashboardLayout({ type }: DashboardLayoutProps) {
         {/* Main Content Area */}
         <main className={cn(
           "flex flex-col min-h-0",
+          type === "admin" && "admin-content-area",
           isAnswering 
             ? "flex-1 bg-[#f5f6f8] overflow-hidden p-0" 
             : cn(
                 (location.pathname === "/user/ai/assistant/studio" || location.pathname === "/user/ai/agents/studio" || location.pathname === "/user/ai/agents") ? "flex-1 p-0 bg-[#f5f6f8] overflow-hidden" : "flex-1 bg-[#f5f6f8] overflow-auto",
-                (location.pathname === "/user" || location.pathname.startsWith("/user/center") || location.pathname === "/user/mylearning" || location.pathname === "/user/ai/assistant/studio" || location.pathname === "/user/ai/agents/studio" || location.pathname.startsWith("/admin/ai") || location.pathname.startsWith("/admin/audit") || location.pathname.startsWith("/admin/ai-center") || location.pathname.startsWith("/admin/competitions") || location.pathname.startsWith("/admin/system") || location.pathname === "/user/ai/agents") ? "p-0" : "p-6"
+                (location.pathname === "/user" || location.pathname.startsWith("/user/center") || location.pathname === "/user/mylearning" || location.pathname === "/user/ai/assistant/studio" || location.pathname === "/user/ai/agents/studio" || location.pathname.startsWith("/admin/ai-quota") || location.pathname.startsWith("/admin/audit") || location.pathname.startsWith("/admin/ai-center") || location.pathname.startsWith("/admin/competitions") || location.pathname.startsWith("/admin/system") || location.pathname === "/user/ai/agents") ? "p-0" : "p-6"
               )
         )}>
           <Outlet />

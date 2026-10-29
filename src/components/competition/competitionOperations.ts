@@ -64,6 +64,8 @@ export interface CompetitionCandidate {
   id: string;
   account: string;
   name: string;
+  phone: string;
+  userGroup: string;
   cloudAccount: string;
   environment: "未开始" | "运行中" | "已关闭" | "已清理";
   status: "未登录" | "竞赛中" | "已交卷";
@@ -106,6 +108,8 @@ export function createCompetitionOperationData(
       id: person.id,
       account: `CTYUN${competition.id.replace(/[^a-z0-9]/gi, "").slice(-6)}${String(index + 1).padStart(3, "0")}`,
       name: person.name,
+      phone: `1838938${String(4485 + index).slice(-4)}`,
+      userGroup: "测试用户",
       cloudAccount: "",
       environment: "未开始",
       status: person.file ? "已交卷" : "未登录",

@@ -3,7 +3,8 @@ import {
   Trophy, Users, Award, Clock, CheckCircle, AlertTriangle, Search, 
   Plus, Edit, Trash2, Shield, Calendar, BookOpen, ChevronRight, X,
   FileText, Sliders, Play, TrendingUp, BarChart2, Download, Filter, 
-  AlertCircle, Settings, Check, RefreshCw, ChevronDown, ChevronLeft
+  AlertCircle, Settings, Check, RefreshCw, ChevronDown, ChevronLeft, Cloud,
+  Eye, EyeOff
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { competitionDrawerStyles as drawerStyles } from "@/components/competition/competitionDrawerStyles";
 import CompetitionFormDrawer, { CompetitionFormValues } from "@/components/competition/CompetitionFormDrawer";
 import CompetitionOperationsDrawer from "@/components/competition/CompetitionOperationsDrawer";
+import CompetitionSelect from "@/components/competition/CompetitionSelect";
 import { CompetitionOperationData, CompetitionOperationMode, createCompetitionOperationData } from "@/components/competition/competitionOperations";
 import { useNavigate } from "react-router-dom";
 
@@ -69,6 +71,28 @@ interface LeaderboardRecord {
   file: string;
   codeReport: string;
 }
+
+interface CloudAccount {
+  id: string;
+  projectId: string;
+  domainId: string;
+  status: "使用中" | "使用完";
+  platform: string;
+  userAccount: string;
+  createdAt: string;
+  extraParams?: string;
+}
+
+const initialCloudAccounts: CloudAccount[] = [
+  { id: "47c05bd37d4a9d68", projectId: "—", domainId: "—", status: "使用中", platform: "天翼云", userAccount: "gui3zsk1mbc1t6", createdAt: "2024-10-04 14:32:18" },
+  { id: "3d87669486e96e12", projectId: "—", domainId: "—", status: "使用完", platform: "天翼云", userAccount: "—", createdAt: "2024-09-28 09:21:44" },
+  { id: "3434e991d67215cf", projectId: "—", domainId: "—", status: "使用完", platform: "天翼云", userAccount: "—", createdAt: "2024-09-25 16:08:30" },
+  { id: "b9d71fb7df10a369", projectId: "—", domainId: "—", status: "使用中", platform: "天翼云", userAccount: "0nllcrs6mamy82", createdAt: "2024-09-23 11:46:05" },
+  { id: "ecc1979cbc3f2831", projectId: "—", domainId: "—", status: "使用完", platform: "天翼云", userAccount: "—", createdAt: "2024-09-20 10:14:26" },
+  { id: "fd7e025fe86d517b", projectId: "—", domainId: "—", status: "使用完", platform: "天翼云", userAccount: "—", createdAt: "2024-09-18 13:52:09" },
+  { id: "a38df514484db521", projectId: "—", domainId: "—", status: "使用中", platform: "天翼云", userAccount: "mqn6odcoco91z4", createdAt: "2024-09-16 08:40:33" },
+  { id: "f8aa177a8d1f92ce", projectId: "—", domainId: "—", status: "使用完", platform: "天翼云", userAccount: "—", createdAt: "2024-09-12 17:25:48" },
+];
 
 // --- Date Time Helpers for Second Precision ---
 
@@ -277,8 +301,274 @@ const initialLeaderboards: Record<string, LeaderboardRecord[]> = {
   ]
 };
 
+interface CloudAccountFormValues {
+  platform: string;
+  account: string;
+  password: string;
+  extraParams: string;
+  projectId: string;
+  domainId: string;
+}
+
+function CloudAccountCreateDrawer({ mode = "create", initialAccount, onClose, onSave }: { mode?: "create" | "edit"; initialAccount?: CloudAccount | null; onClose: () => void; onSave: (values: CloudAccountFormValues) => void }) {
+  const [platform, setPlatform] = useState(initialAccount?.platform || "");
+  const [account, setAccount] = useState(initialAccount?.userAccount === "—" ? "" : initialAccount?.userAccount || "");
+  const [password, setPassword] = useState("");
+  const [extraParams, setExtraParams] = useState(initialAccount?.extraParams || "");
+  const [projectId, setProjectId] = useState(initialAccount?.projectId === "—" ? "" : initialAccount?.projectId || "");
+  const [domainId, setDomainId] = useState(initialAccount?.domainId === "—" ? "" : initialAccount?.domainId || "");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const nextErrors: Record<string, string> = {};
+    if (!platform) nextErrors.platform = "请选择云平台";
+    if (!account.trim()) nextErrors.account = "请输入账号";
+    if (!password) nextErrors.password = "请输入密码";
+    if (platform === "华为云" && !projectId.trim()) nextErrors.projectId = "请输入项目ID";
+    if (platform === "华为云" && !domainId.trim()) nextErrors.domainId = "请输入domainID";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+    onSave({ platform, account: account.trim(), password, extraParams: extraParams.trim(), projectId: projectId.trim(), domainId: domainId.trim() });
+  };
+
+  return createPortal(
+    <div className={drawerStyles.overlay} onClick={onClose}>
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cloud-account-drawer-title"
+        onSubmit={submit}
+        onClick={event => event.stopPropagation()}
+        className={cn(drawerStyles.panel, "max-w-[620px]")}
+      >
+        <div className={drawerStyles.header}>
+          <h2 id="cloud-account-drawer-title" className={drawerStyles.title}>{mode === "edit" ? "编辑账号" : "新建账号"}</h2>
+          <button type="button" aria-label={mode === "edit" ? "关闭编辑账号" : "关闭新建账号"} onClick={onClose} className={drawerStyles.close}><X className="w-4 h-4" /></button>
+        </div>
+        <div className={drawerStyles.body}>
+          <div className="space-y-5 pt-1">
+            <div className={drawerStyles.field}>
+              <label htmlFor="cloud-platform" className={drawerStyles.label}><span className="text-[#fa541c] mr-1">*</span>云平台</label>
+              <div>
+                <CompetitionSelect
+                  id="cloud-platform"
+                  value={platform}
+                  options={["天翼云", "华为云"]}
+                  placeholder="请选择云平台"
+                  aria-invalid={Boolean(errors.platform)}
+                  onChange={value => {
+                    setPlatform(value);
+                    setErrors(previous => ({ ...previous, platform: "", projectId: "", domainId: "" }));
+                  }}
+                />
+                {errors.platform && <p className="text-red-500 text-xs mt-1.5">{errors.platform}</p>}
+              </div>
+            </div>
+            <div className={drawerStyles.field}>
+              <label htmlFor="cloud-account" className={drawerStyles.label}><span className="text-[#fa541c] mr-1">*</span>账号</label>
+              <div>
+                <div className="relative">
+                  <input id="cloud-account" maxLength={100} value={account} onChange={event => { setAccount(event.target.value); setErrors(previous => ({ ...previous, account: "" })); }} placeholder="请输入云账号" className={cn(drawerStyles.input, "pr-20")} />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400">{account.length} / 100</span>
+                </div>
+                {errors.account && <p className="text-red-500 text-xs mt-1.5">{errors.account}</p>}
+              </div>
+            </div>
+            <div className={drawerStyles.field}>
+              <label htmlFor="cloud-password" className={drawerStyles.label}><span className="text-[#fa541c] mr-1">*</span>密码</label>
+              <div>
+                <div className="relative">
+                  <input id="cloud-password" type={showPassword ? "text" : "password"} value={password} onChange={event => { setPassword(event.target.value); setErrors(previous => ({ ...previous, password: "" })); }} placeholder="请输入密码" className={cn(drawerStyles.input, "pr-10")} />
+                  <button type="button" aria-label={showPassword ? "隐藏密码" : "显示密码"} onClick={() => setShowPassword(value => !value)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 cursor-pointer p-1">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {errors.password && <p className="text-red-500 text-xs mt-1.5">{errors.password}</p>}
+              </div>
+            </div>
+            {platform === "天翼云" && (
+              <div className={drawerStyles.field}>
+                <label htmlFor="cloud-extra-params" className={drawerStyles.label}>额外参数</label>
+                <div className="relative">
+                  <input id="cloud-extra-params" maxLength={200} value={extraParams} onChange={event => setExtraParams(event.target.value)} placeholder="请输入额外参数" className={cn(drawerStyles.input, "pr-20")} />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400">{extraParams.length} / 200</span>
+                </div>
+              </div>
+            )}
+            {platform === "华为云" && (
+              <>
+                <div className={drawerStyles.field}>
+                  <label htmlFor="cloud-project-id" className={drawerStyles.label}><span className="text-[#fa541c] mr-1">*</span>项目ID</label>
+                  <div>
+                    <div className="relative">
+                      <input id="cloud-project-id" maxLength={200} value={projectId} onChange={event => { setProjectId(event.target.value); setErrors(previous => ({ ...previous, projectId: "" })); }} placeholder="请输入项目ID" className={cn(drawerStyles.input, "pr-20")} />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400">{projectId.length} / 200</span>
+                    </div>
+                    {errors.projectId && <p className="text-red-500 text-xs mt-1.5">{errors.projectId}</p>}
+                  </div>
+                </div>
+                <div className={drawerStyles.field}>
+                  <label htmlFor="cloud-domain-id" className={drawerStyles.label}><span className="text-[#fa541c] mr-1">*</span>domainID</label>
+                  <div>
+                    <div className="relative">
+                      <input id="cloud-domain-id" maxLength={200} value={domainId} onChange={event => { setDomainId(event.target.value); setErrors(previous => ({ ...previous, domainId: "" })); }} placeholder="请输入domainID" className={cn(drawerStyles.input, "pr-20")} />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400">{domainId.length} / 200</span>
+                    </div>
+                    {errors.domainId && <p className="text-red-500 text-xs mt-1.5">{errors.domainId}</p>}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        <div className={drawerStyles.footer}>
+          <Button type="button" variant="outline" onClick={onClose} className={drawerStyles.secondary}>取消</Button>
+          <Button type="submit" className={drawerStyles.primary}>确认</Button>
+        </div>
+      </form>
+    </div>,
+    document.body
+  );
+}
+
+function CloudAccountPanel({ onNotify }: { onNotify: (message: string) => void }) {
+  const [accounts, setAccounts] = useState<CloudAccount[]>(initialCloudAccounts);
+  const [keyword, setKeyword] = useState("");
+  const [showCreateDrawer, setShowCreateDrawer] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<CloudAccount | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ type: "release" | "delete"; account: CloudAccount } | null>(null);
+  const visibleAccounts = accounts.filter(account => account.id.toLowerCase().includes(keyword.trim().toLowerCase()));
+
+  const createAccount = (values: CloudAccountFormValues) => {
+    const accountId = `cloud-${Date.now().toString(36)}`;
+    setAccounts(previous => [{
+      id: accountId, projectId: values.platform === "华为云" ? values.projectId : "—", domainId: values.platform === "华为云" ? values.domainId : "—", status: "使用完",
+      platform: values.platform, userAccount: values.account, createdAt: getCurrentDateTimeSecond()
+    }, ...previous]);
+    setKeyword("");
+    setShowCreateDrawer(false);
+    onNotify("云账号创建成功");
+  };
+
+  const editAccount = (values: CloudAccountFormValues) => {
+    if (!editingAccount) return;
+    setAccounts(previous => previous.map(item => item.id === editingAccount.id ? {
+      ...item,
+      platform: values.platform,
+      userAccount: values.account,
+      projectId: values.platform === "华为云" ? values.projectId : "—",
+      domainId: values.platform === "华为云" ? values.domainId : "—",
+      extraParams: values.platform === "天翼云" ? values.extraParams : ""
+    } : item));
+    setEditingAccount(null);
+    onNotify("云账号信息已更新");
+  };
+
+  const deleteAccount = (account: CloudAccount) => {
+    setAccounts(previous => previous.filter(item => item.id !== account.id));
+    setConfirmAction(null);
+    onNotify("云账号已删除");
+  };
+
+  const releaseAccount = (account: CloudAccount) => {
+    setAccounts(previous => previous.map(item => item.id === account.id
+      ? { ...item, status: "使用完", userAccount: "—" }
+      : item));
+    setConfirmAction(null);
+    onNotify("账号已释放");
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end gap-4">
+        <h1 className="text-xl font-bold text-neutral-900">云账号</h1>
+        <p className="text-sm text-neutral-500 mb-0.5">统一管理竞赛使用的云平台账号及分配状态</p>
+      </div>
+      <div className="bg-white rounded-[8px] border border-neutral-border overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 border-b border-neutral-border/50">
+          <div className="relative w-full sm:w-72">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <input
+              aria-label="输入云账号"
+              value={keyword}
+              onChange={event => setKeyword(event.target.value)}
+              placeholder="请输入云账号"
+              className="h-9 w-full border border-neutral-border rounded-full pl-9 pr-4 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:border-[#fa541c] focus:ring-1 focus:ring-[#fa541c] transition-all"
+            />
+          </div>
+          <Button onClick={() => setShowCreateDrawer(true)} className="h-9 px-5 rounded-[4px] bg-[#fa541c] hover:bg-[#e84a15] text-white text-sm font-semibold border-0 cursor-pointer self-end sm:self-auto">
+            <Plus className="w-4 h-4" />新建
+          </Button>
+        </div>
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full min-w-[1080px] text-left border-collapse whitespace-nowrap">
+            <thead>
+              <tr className="bg-neutral-50/80 border-b border-neutral-border text-[13px] text-neutral-600">
+                {["云账号", "项目ID", "domainID", "使用状态", "平台", "使用账号", "创建时间", "操作"].map(label => (
+                  <th key={label} className="px-5 py-3.5 font-semibold">{label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {visibleAccounts.map(account => (
+                <tr key={account.id} className="border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50/40 text-[13px]">
+                  <td className="px-5 py-4 text-neutral-700 font-medium"><span className="block max-w-[150px] truncate" title={account.id}>{account.id}</span></td>
+                  <td className="px-5 py-4 text-neutral-500">{account.projectId}</td>
+                  <td className="px-5 py-4 text-neutral-500">{account.domainId}</td>
+                  <td className="px-5 py-4"><span className={cn("inline-flex px-2 py-0.5 rounded-[4px] border text-[12px]", account.status === "使用中" ? "bg-orange-50 text-orange-500 border-orange-200" : "bg-neutral-100 text-neutral-500 border-neutral-200")}>{account.status}</span></td>
+                  <td className="px-5 py-4 text-neutral-700 font-medium">{account.platform}</td>
+                  <td className="px-5 py-4 text-neutral-600"><span className="block max-w-[150px] truncate" title={account.userAccount}>{account.userAccount}</span></td>
+                  <td className="px-5 py-4 text-neutral-500 font-mono text-xs">{account.createdAt}</td>
+                  <td className="px-5 py-4"><div className="flex items-center gap-2.5">
+                    <button onClick={() => setEditingAccount(account)} className="text-[#fa541c] hover:text-[#e84a15] font-semibold cursor-pointer">编辑</button>
+                    <span className="text-neutral-200">|</span>
+                    <button onClick={() => setConfirmAction({ type: "delete", account })} className="text-[#fa541c] hover:text-[#e84a15] font-semibold cursor-pointer">删除</button>
+                    <span className="text-neutral-200">|</span>
+                    <button disabled={account.status === "使用完"} onClick={() => setConfirmAction({ type: "release", account })} className="text-[#fa541c] hover:text-[#e84a15] disabled:text-[#ffbb96] disabled:cursor-not-allowed font-semibold cursor-pointer">释放账号</button>
+                  </div></td>
+                </tr>
+              ))}
+              {visibleAccounts.length === 0 && <tr><td colSpan={8} className="py-16 text-center text-sm text-neutral-400">暂无符合条件的云账号</td></tr>}
+            </tbody>
+          </table>
+        </div>
+        <div className="px-6 py-4 border-t border-neutral-border/30 text-right text-[13px] text-neutral-500">共 {visibleAccounts.length} 条</div>
+      </div>
+      {showCreateDrawer && <CloudAccountCreateDrawer onClose={() => setShowCreateDrawer(false)} onSave={createAccount} />}
+      {editingAccount && <CloudAccountCreateDrawer mode="edit" initialAccount={editingAccount} onClose={() => setEditingAccount(null)} onSave={editAccount} />}
+      {confirmAction && (
+        <div className="fixed inset-0 z-[240] flex items-center justify-center bg-black/45 backdrop-blur-[2px] animate-fade-in text-left p-4" onClick={() => setConfirmAction(null)}>
+          <div role="alertdialog" aria-modal="true" aria-labelledby="cloud-confirm-title" className="bg-white rounded-[8px] shadow-2xl w-full max-w-[460px] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200" onClick={event => event.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50 shrink-0">
+              <h2 id="cloud-confirm-title" className="text-[16px] font-bold text-[#262626]">{confirmAction.type === "release" ? "确认释放账号" : "确认删除账号"}</h2>
+              <button type="button" aria-label="关闭确认弹窗" onClick={() => setConfirmAction(null)} className="text-neutral-400 hover:text-[#fa541c] p-1.5 hover:bg-neutral-100 rounded-[4px] transition-colors border-0 bg-transparent cursor-pointer"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-6 flex items-start gap-3 bg-white">
+              <div className="w-5 h-5 rounded-full bg-[#f5a94f] text-white flex items-center justify-center font-bold text-[13px] shrink-0 select-none mt-0.5">!</div>
+              <div className="text-[14px] text-neutral-700 leading-6">
+                {confirmAction.type === "release" ? (
+                  <>请确认当前账号是否仍在使用中，是否确认释放 <span className="text-[#fa541c] font-medium break-all">{confirmAction.account.id}</span> 账号？</>
+                ) : (
+                  <>确定要删除云账号 <span className="text-[#fa541c] font-medium break-all">{confirmAction.account.id}</span> 吗？该操作不可撤销。</>
+                )}
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-neutral-100 bg-neutral-50/50 flex items-center justify-end gap-3 shrink-0">
+              <Button type="button" variant="outline" onClick={() => setConfirmAction(null)} className={drawerStyles.secondary}>取消</Button>
+              <Button type="button" onClick={() => confirmAction.type === "release" ? releaseAccount(confirmAction.account) : deleteAccount(confirmAction.account)} className={drawerStyles.primary}>确定</Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminCompetitionsPage() {
   const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState<"cloud" | "competition">("competition");
   const [activeTab, setActiveTab] = useState<"overview" | "list" | "review" | "teams" | "scores">("list");
 
   // --- Dynamic State Managers ---
@@ -552,8 +842,47 @@ export default function AdminCompetitionsPage() {
 
   return (
     <div className="flex min-h-full w-full bg-[#f5f6f8] text-neutral-800 font-sans">
-      
+      <aside className="w-[200px] bg-white border-r border-neutral-border flex-shrink-0 min-h-full">
+        <div className="p-5 border-b border-neutral-border">
+          <h2 className="text-lg font-semibold text-neutral-title">竞赛管理</h2>
+        </div>
+        <nav className="p-4 space-y-1">
+          <button
+            type="button"
+            onClick={() => { setActiveSection("cloud"); setActionMenu(null); }}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-[14px] font-medium transition-colors cursor-pointer border-0 text-left",
+              activeSection === "cloud" ? "bg-[#fff2e8] text-[#fa541c] font-semibold" : "bg-transparent text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+            )}
+          >
+            <Cloud className="w-4 h-4 shrink-0" />
+            <span>云账号</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSection("competition")}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-[14px] font-medium transition-colors cursor-pointer border-0 text-left",
+              activeSection === "competition" ? "bg-[#fff2e8] text-[#fa541c] font-semibold" : "bg-transparent text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+            )}
+          >
+            <Trophy className="w-4 h-4 shrink-0" />
+            <span>竞赛管理</span>
+          </button>
+        </nav>
+      </aside>
+
       <div className="flex-1 min-w-0 overflow-auto p-6 flex flex-col custom-scrollbar relative">
+        {toastMessage && (
+          <div role="status" className="fixed top-6 left-1/2 -translate-x-1/2 z-[300] bg-neutral-900 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-neutral-800 text-xs font-bold animate-slide-up">
+            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
+        {activeSection === "cloud" && <CloudAccountPanel onNotify={triggerToast} />}
+
+        <div className={activeSection === "competition" ? "contents" : "hidden"}>
         {activeTab !== "list" && <button onClick={() => setActiveTab("list")} className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-[#fa541c] cursor-pointer mb-5 self-start"><ChevronLeft className="w-4 h-4" />返回竞赛列表</button>}
 
         {actionMenu && menuCompetition && createPortal(
@@ -590,14 +919,6 @@ export default function AdminCompetitionsPage() {
               ].map(([label, value]) => <div key={label} className="bg-neutral-50 rounded border border-neutral-100 p-4"><p className="text-xs text-neutral-500 mb-2">{label}</p><p className="text-xl font-semibold text-neutral-800">{value}</p></div>)}</div><p className="text-neutral-500 text-xs">竞赛周期：{dialogCompetition.duration}</p></div>
               <div className={drawerStyles.footer}><Button variant="outline" className={drawerStyles.secondary} onClick={() => setManagementDialog(null)}>关闭</Button></div>
             </div>
-          </div>
-        )}
-
-        {/* Toast Alert Pop-up */}
-        {toastMessage && (
-          <div role="status" className="fixed top-6 left-1/2 -translate-x-1/2 z-[300] bg-neutral-900 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-neutral-800 text-xs font-bold animate-slide-up">
-            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{toastMessage}</span>
           </div>
         )}
 
@@ -1291,7 +1612,7 @@ export default function AdminCompetitionsPage() {
 
           </div>
         )}
-
+        </div>
       </div>
     </div>
   );

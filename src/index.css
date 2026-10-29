@@ -1,6 +1,18 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+
+/* Keep the outer white content modules consistent across the admin console. */
+.admin-content-area :where(.bg-white.rounded-xl, .bg-white.rounded-2xl),
+.admin-content-area :where(.bg-white.rounded.overflow-hidden) {
+  border-radius: 8px;
+}
+
+.admin-content-area :where(button, [role="button"]):disabled,
+.admin-content-area :where(button, [role="button"])[aria-disabled="true"] {
+  color: #ffbb96 !important;
+  cursor: not-allowed;
+}
 @import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));

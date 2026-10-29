@@ -42,6 +42,34 @@ const referenceScoreEvents = [
   ["mysql-数据库备份任务检查", "mysql-数据库备份任务检查(历史得分)", 0, "2026-10-22 14:40:15"],
 ] as const;
 
+const referenceCheckDetailContent = `// var event = {
+//     url: {
+//         "main": "http://127.0.0.1"
+//     },
+//     param: {
+//         "input": "111",
+//         "response": "222",
+//         "argC": "333"
+//     },
+//     meta: {timestamp: 1719227813, serial: 111}
+// }
+
+function generate_request(event) {
+    fail_reason = "";
+    url = event.url.app1 + "/calc?request_id=" + event.meta.serial;
+    if (!(url.startsWith("http://") || url.startsWith("https://"))) {
+        fail_reason = "app1: 请提交以http://或https://开头的服务地址";
+        return { success: false, message: fail_reason };
+    }
+
+    return {
+        success: true,
+        method: "POST",
+        url: url,
+        body: event.param
+    };
+}`;
+
 function SearchInput({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) {
   return <div className="relative w-60 max-w-full"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" /><input aria-label={placeholder} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className={cn(styles.input, "pl-9 pr-4 h-9")} /></div>;
 }
@@ -77,6 +105,17 @@ function exportCandidates(competition: OperationCompetition, data: CompetitionOp
   const url = URL.createObjectURL(new Blob(["\uFEFF", content], { type: "text/csv;charset=utf-8;" }));
   const link = document.createElement("a");
   link.href = url; link.download = `${competition.name}_考生数据.csv`; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportResults(competition: OperationCompetition, data: CompetitionOperationData, rows: CompetitionCandidate[]) {
+  const cells = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  const content = [["姓名", "账号", "手机号", "用户组", "成绩"], ...rows.map(row => [
+    row.name, row.account, row.phone, row.userGroup, competitionScore(row, data).total
+  ])].map(row => row.map(cells).join(",")).join("\r\n");
+  const url = URL.createObjectURL(new Blob(["\uFEFF", content], { type: "text/csv;charset=utf-8;" }));
+  const link = document.createElement("a");
+  link.href = url; link.download = `${competition.name}_竞赛成绩.csv`; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
@@ -214,7 +253,7 @@ export default function CompetitionOperationsDrawer({ target, data, onChange, on
           <span aria-hidden="true" className="h-3 w-px bg-neutral-300" />
           <p className="min-w-0 flex-1 truncate text-xs text-neutral-500" title={competition.name}>{competition.name}</p>
         </div> : <>
-          <p className="text-xs text-neutral-500 truncate" title={competition.name}>{competition.name}</p>
+          {mode !== "results" && <p className="text-xs text-neutral-500 truncate" title={competition.name}>{competition.name}</p>}
           {isSubpage && <button className="flex items-center gap-1.5 text-neutral-500 hover:text-[#fa541c] text-xs cursor-pointer" onClick={backToList}><ArrowLeft className="w-3.5 h-3.5" />返回{titles[mode]}列表</button>}
         </>}
 
@@ -236,7 +275,7 @@ export default function CompetitionOperationsDrawer({ target, data, onChange, on
             </table>
           </div>}
           {candidatePanel.kind === "result" && <div className="space-y-4"><div className="grid grid-cols-3 gap-4">{[["固定得分", competitionScore(activeCandidate, data).fixed ?? "--"], ["浮动得分", competitionScore(activeCandidate, data).floating ?? "--"], ["总得分", competitionScore(activeCandidate, data).total]].map(([label, score]) => <div key={label} className="border border-neutral-200 rounded-[4px] p-4"><p className="text-xs text-neutral-500 mb-2">{label}</p><p className="font-semibold text-xl">{score}</p></div>)}</div><div className="border border-neutral-200 rounded-[4px] p-4 space-y-3 text-neutral-600"><p>提交文件：{activeCandidate.file || "暂无提交文件"}</p><p>评测报告：{activeCandidate.report || "暂无评测报告"}</p></div><button className={actionClass} onClick={() => setCandidatePanel({ id: activeCandidate.id, kind: "events" })}>查看得分事件</button></div>}
-        </div> : checkEditor ? <CompetitionCheckForm value={checkEditor} isEditing={data.checks.some(item => item.id === checkEditor.id)} error={error} onChange={value => { setCheckEditor(value); setError(""); }} onSubmit={saveCheck} /> : checkDetail ? <div className="border border-neutral-200 rounded-[4px] overflow-hidden"><h3 className="px-4 py-3 bg-neutral-50 border-b border-neutral-200 font-semibold">{checkDetail.name}</h3><div className="p-4 space-y-4"><p className="text-neutral-500">{checkDetail.description}</p><pre className="whitespace-pre-wrap break-words rounded bg-neutral-50 border border-neutral-100 p-4 text-xs leading-6 text-neutral-700 font-mono">{checkDetail.content}</pre><p className="text-xs text-neutral-400">更新时间：{checkDetail.updatedAt}</p></div></div>
+        </div> : checkEditor ? <CompetitionCheckForm value={checkEditor} isEditing={data.checks.some(item => item.id === checkEditor.id)} error={error} onChange={value => { setCheckEditor(value); setError(""); }} onSubmit={saveCheck} /> : checkDetail ? <div className="border border-neutral-200 rounded-[4px] overflow-hidden"><h3 className="px-4 py-3 bg-neutral-50 border-b border-neutral-200 font-semibold">检查项内容</h3><div className="p-4"><pre className="max-h-[520px] overflow-auto whitespace-pre bg-[#eef0f3] border border-neutral-200 p-4 text-[13px] leading-6 text-neutral-700 font-mono custom-scrollbar">{referenceCheckDetailContent}</pre></div></div>
         : extensionTargets ? <form id="competition-extension-form" className="max-w-[680px] space-y-5" onSubmit={event => {
           event.preventDefault(); const minutes = Number(extensionMinutes);
           if (!Number.isInteger(minutes) || minutes < 1 || minutes > 180) { setError("延时需为 1 至 180 分钟的整数"); return; }
@@ -250,8 +289,23 @@ export default function CompetitionOperationsDrawer({ target, data, onChange, on
           {["固定判分总分", "浮动判分总分"].map((label, index) => <label key={label} className={styles.field}><span className={styles.label}>{label}</span><div className="flex items-center gap-2"><div className="flex border border-neutral-200 rounded-[4px] overflow-hidden h-9"><button type="button" aria-label={`减少${label}`} className="px-3 bg-neutral-50 border-r border-neutral-200 hover:text-[#fa541c] cursor-pointer disabled:opacity-40" disabled={Number(totals[index]) <= 0} onClick={() => setTotals(prev => prev.map((value, i) => i === index ? String(Math.max(0, (Number(value) || 0) - 1)) : value))}><Minus className="w-3.5 h-3.5" /></button><input required aria-label={label} type="number" min="0" max="10000" step="0.01" value={totals[index]} onChange={e => { setTotals(prev => prev.map((value, i) => i === index ? e.target.value : value)); setError(""); }} className="w-32 text-center outline-none text-[13px] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" /><button type="button" aria-label={`增加${label}`} className="px-3 bg-neutral-50 border-l border-neutral-200 hover:text-[#fa541c] cursor-pointer disabled:opacity-40" disabled={Number(totals[index]) >= 10000} onClick={() => setTotals(prev => prev.map((value, i) => i === index ? String(Math.min(10000, (Number(value) || 0) + 1)) : value))}><Plus className="w-3.5 h-3.5" /></button></div><span>分</span></div></label>)}
           <p className="text-red-500 text-xs">* 输入为 0 时不进行分值转换</p>{error && <p role="alert" className="text-red-500 text-xs">{error}</p>}
         </form>
-        : mode === "checks" ? <div className="space-y-4"><div className="flex flex-wrap items-center gap-3 justify-between"><div className="flex flex-wrap items-center gap-3"><div role="tablist" aria-label="检查项分类" className={cn(styles.tabList, "overflow-x-auto max-w-full")}>{categories.map(item => <button key={item.key} role="tab" aria-selected={category === item.key} onClick={() => { setCategory(item.key); setSearch(""); setPage(1); }} className={cn(styles.tab, category === item.key ? styles.activeTab : styles.inactiveTab)}>{item.label}</button>)}</div><SearchInput value={search} onChange={value => { setSearch(value); setPage(1); }} placeholder={`请输入${categoryLabel}名称`} /></div><Button className={primaryClass} onClick={() => { setError(""); setCheckEditor(configureCompetitionCheck({ id: `check-${Date.now()}`, category, name: "", description: "", content: "", updatedAt: "" })); }}><Plus className="w-3.5 h-3.5" />新建{categoryLabel}</Button></div>{renderChecksTable()}</div>
-        : mode === "grading" || mode === "results" ? <div className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-3"><SearchInput value={search} onChange={value => { setSearch(value); setPage(1); }} placeholder="请输入姓名或账号" />{mode === "results" && <Button variant="outline" onClick={handleExport} className={secondaryClass}><Download className="w-3.5 h-3.5" />导出成绩</Button>}</div>
+        : mode === "checks" ? <div className="space-y-4">
+          <div role="tablist" aria-label="检查项分类" className={cn(styles.tabList, "overflow-x-auto max-w-full")}>{categories.map(item => <button key={item.key} role="tab" aria-selected={category === item.key} onClick={() => { setCategory(item.key); setSearch(""); setPage(1); }} className={cn(styles.tab, category === item.key ? styles.activeTab : styles.inactiveTab)}>{item.label}</button>)}</div>
+          <div className="flex flex-wrap items-center justify-between gap-3"><SearchInput value={search} onChange={value => { setSearch(value); setPage(1); }} placeholder={`请输入${categoryLabel}名称`} /><Button className={primaryClass} onClick={() => { setError(""); setCheckEditor(configureCompetitionCheck({ id: `check-${Date.now()}`, category, name: "", description: "", content: "", updatedAt: "" })); }}><Plus className="w-3.5 h-3.5" />新建{categoryLabel}</Button></div>
+          {renderChecksTable()}
+        </div>
+        : mode === "results" ? <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="min-w-0 flex-1 truncate text-xs text-neutral-500" title={competition.name}>{competition.name}</p>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button variant="outline" title="刷新" aria-label="刷新竞赛成绩" onClick={() => { setRefreshAt(new Date().toLocaleTimeString("zh-CN", { hour12: false })); onNotify("竞赛成绩已刷新"); }} className="border-neutral-200 text-neutral-600 hover:text-[#fa541c] hover:border-orange-200 hover:bg-orange-50/20 w-8 h-8 p-0 flex items-center justify-center rounded-[4px] cursor-pointer bg-white"><RefreshCw className="w-3.5 h-3.5" /></Button>
+              <Button onClick={() => { exportResults(competition, data, filteredCandidates); onNotify("竞赛成绩已导出"); }} className={primaryClass}><Download className="w-3.5 h-3.5" />导出</Button>
+            </div>
+          </div>
+          <div className={tableWrapper}><table className="w-full text-left whitespace-nowrap min-w-[760px]"><thead><tr className={tableHeader}>{["姓名", "账号", "手机号", "用户组", "成绩"].map(label => <th key={label} className="p-3 font-medium">{label}</th>)}</tr></thead><tbody>{!candidates.length ? <EmptyRow columns={5} label="暂无竞赛成绩" /> : candidates.map(candidate => <tr key={candidate.id} className={rowClass}><td className={cellClass}>{candidate.name}</td><td className={cellClass}>{candidate.account}</td><td className={cellClass}>{candidate.phone}</td><td className={cellClass}>{candidate.userGroup}</td><td className={cn(cellClass, "font-semibold text-neutral-800")}>{competitionScore(candidate, data).total}</td></tr>)}</tbody></table></div>
+          <Pagination total={filteredCandidates.length} page={currentPage} size={size} onPage={setPage} onSize={setPageSize} />
+        </div>
+        : mode === "grading" ? <div className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-3"><SearchInput value={search} onChange={value => { setSearch(value); setPage(1); }} placeholder="请输入姓名或账号" /></div>
           <div className={tableWrapper}><table className="w-full text-left whitespace-nowrap min-w-[800px]"><thead><tr className={tableHeader}>{["账号", "姓名", "固定得分", "浮动得分", "得分/总分", "操作"].map(label => <th key={label} className="p-3 font-medium">{label}</th>)}</tr></thead><tbody>{!candidates.length ? <EmptyRow columns={6} label="暂无符合条件的考生" /> : candidates.map(candidate => { const score = competitionScore(candidate, data); return <tr key={candidate.id} className={rowClass}><td className={cellClass}>{candidate.account}</td><td className={cellClass}>{candidate.name}</td><td className={cellClass}>{score.fixed ?? "--"}</td><td className={cellClass}>{score.floating ?? "--"}</td><td className={cellClass}><span className="text-neutral-800">{score.total}</span> / {score.maximum}</td><td className={cellClass}><div className="flex gap-3">{mode === "grading" ? <button className={actionClass} onClick={() => openCandidate(candidate, "grade")}>批阅</button> : <button className={actionClass} onClick={() => openCandidate(candidate, "result")}>查看结果</button>}<span className="text-neutral-200">|</span><button className={actionClass} onClick={() => openCandidate(candidate, "events")}>得分事件</button></div></td></tr>; })}</tbody></table></div><Pagination total={filteredCandidates.length} page={currentPage} size={size} onPage={setPage} onSize={setPageSize} />
         </div>
         : mode === "proctor" && <div className="space-y-5">

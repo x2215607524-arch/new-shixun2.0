@@ -29,16 +29,8 @@ import UserCenterSecurity from "./pages/user/UserCenterSecurity";
 import UserCenterMessages from "./pages/user/UserCenterMessages";
 import UserPersona from "./pages/user/UserPersona";
 import MyLearning from "./pages/user/MyLearning";
-import AdminAILayout from "./layouts/AdminAILayout";
-import AdminAICourses from "./pages/admin/AdminAICourses";
-import AdminAIExperiments from "./pages/admin/AdminAIExperiments";
-import AdminAIProjects from "./pages/admin/AdminAIProjects";
-import AdminAIDatasets from "./pages/admin/AdminAIDatasets";
-import AdminAICapabilities from "./pages/admin/AdminAICapabilities";
-import AdminAIPractices from "./pages/admin/AdminAIPractices";
 import AdminAudit from "./pages/admin/AdminAudit";
 import { 
-  AdminAI, 
   AdminSecurity, 
   AdminPublicCloud, 
   AdminPrivateCloud, 
@@ -175,15 +167,8 @@ export default function App() {
 
         {/* Admin Dashboard */}
         <Route path="/admin" element={<DashboardLayout type="admin" />}>
-          <Route index element={<Navigate to="/admin/ai" replace />} />
-          <Route path="ai" element={<AdminAILayout />}>
-            <Route index element={<Navigate to="/admin/ai/courses" replace />} />
-            <Route path="courses" element={<AdminAICourses />} />
-            <Route path="projects" element={<AdminAIProjects />} />
-            <Route path="datasets" element={<AdminAIDatasets />} />
-            <Route path="capabilities" element={<AdminAICapabilities />} />
-            <Route path="practices" element={<AdminAIPractices />} />
-          </Route>
+          <Route index element={<Navigate to="/admin/audit" replace />} />
+          <Route path="ai/*" element={<Navigate to="/admin/audit" replace />} />
           <Route path="security" element={<SecurityLayout />}>
             <Route index element={<AdminSecurity />} />
             <Route path="policies" element={<SecurityPolicies />} />
