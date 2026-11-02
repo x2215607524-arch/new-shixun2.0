@@ -79,7 +79,7 @@ export default function TeacherDatasetDetail() {
   const [formTags, setFormTags] = useState<string[]>([]);
   const [formDesc, setFormDesc] = useState('');
   const [formIntroduction, setFormIntroduction] = useState('');
-  const [selectedCover, setSelectedCover] = useState('/shixunnew-v2/images/covers/microsoft_tech_ai_1779333317936.png');
+  const [selectedCover, setSelectedCover] = useState(`${import.meta.env.BASE_URL}images/covers/microsoft_tech_ai_1779333317936.png`);
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
   const tagDropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -117,12 +117,12 @@ export default function TeacherDatasetDetail() {
   ]);
 
   const defaultCovers = [
-    '/shixunnew-v2/images/covers/microsoft_tech_ai_1779333317936.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_data_1779333332856.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_cloud_1779333396845.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_cyber_1779333412582.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_dev_1779333430898.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_ml_1779333449102.png',
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ai_1779333317936.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_data_1779333332856.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_cloud_1779333396845.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_cyber_1779333412582.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_dev_1779333430898.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ml_1779333449102.png`,
   ];
 
   const availableTagsList = ['AI', '容器', '虚机', 'Java', 'Python', '数据分析', 'DevOps', '大模型'];
@@ -175,7 +175,7 @@ export default function TeacherDatasetDetail() {
       starCount: 128,
       referenceCount: 214,
       size: '8 MB',
-      image: '/shixunnew-v2/images/covers/microsoft_tech_data_1779333332856.png'
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_data_1779333332856.png`
     },
     '2': {
       id: 2,
@@ -190,7 +190,7 @@ export default function TeacherDatasetDetail() {
       starCount: 256,
       referenceCount: 89,
       size: '1.25 GB',
-      image: '/shixunnew-v2/images/covers/microsoft_tech_ai_1779333317936.png'
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ai_1779333317936.png`
     },
     '3': {
       id: 3,
@@ -205,7 +205,7 @@ export default function TeacherDatasetDetail() {
       starCount: 64,
       referenceCount: 18,
       size: '340 MB',
-      image: '/shixunnew-v2/images/covers/microsoft_tech_ml_1779333449102.png'
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ml_1779333449102.png`
     }
   };
 
@@ -332,7 +332,7 @@ export default function TeacherDatasetDetail() {
             <div className="shrink-0 z-10">
               <div className="w-[300px] h-[170px] rounded-xl overflow-hidden border-[5px] border-white shadow-2xl transition-transform duration-300 hover:scale-[1.02] relative bg-neutral-900">
                 <img 
-                  src={dataset.image || '/shixunnew-v2/images/covers/microsoft_tech_data_1779333332856.png'} 
+                  src={dataset.image || `${import.meta.env.BASE_URL}images/covers/microsoft_tech_data_1779333332856.png`}
                   alt={dataset.name} 
                   className="w-full h-full object-cover opacity-90"
                   referrerPolicy="no-referrer"

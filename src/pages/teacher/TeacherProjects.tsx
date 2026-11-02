@@ -298,12 +298,12 @@ export default function TeacherProjects({
 
   // Default covers for premium look
   const defaultCovers = [
-    '/shixunnew-v2/images/covers/microsoft_tech_ai_1779333317936.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_data_1779333332856.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_cloud_1779333396845.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_cyber_1779333412582.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_dev_1779333430898.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_ml_1779333449102.png',
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ai_1779333317936.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_data_1779333332856.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_cloud_1779333396845.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_cyber_1779333412582.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_dev_1779333430898.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ml_1779333449102.png`,
   ];
 
   // View states (List or Modals)
@@ -485,7 +485,7 @@ export default function TeacherProjects({
       range: '私有',
       auditStatus: '未审核',
       updateTime: '2026/06/15 17:30',
-      image: '/shixunnew-v2/images/covers/microsoft_tech_ai_1779333317936.png',
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ai_1779333317936.png`,
       courseId: 1,
       tags: ['容器', 'AI'],
       creator: '张老师',
@@ -514,7 +514,7 @@ export default function TeacherProjects({
       range: '私有',
       auditStatus: '未审核',
       updateTime: '2026/06/15 17:25',
-      image: '/shixunnew-v2/images/covers/microsoft_tech_dev_1779333430898.png',
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_dev_1779333430898.png`,
       courseId: 2,
       tags: ['虚机', 'Java'],
       creator: '李老师',
@@ -543,7 +543,7 @@ export default function TeacherProjects({
       range: '租户',
       auditStatus: '已通过',
       updateTime: '2026/06/15 17:20',
-      image: '/shixunnew-v2/images/covers/microsoft_tech_data_1779333332856.png',
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_data_1779333332856.png`,
       courseId: 1,
       tags: ['容器', '数据分析'],
       creator: '王老师',
@@ -572,7 +572,7 @@ export default function TeacherProjects({
       range: '平台',
       auditStatus: '已通过',
       updateTime: '2026/06/15 17:15',
-      image: '/shixunnew-v2/images/covers/microsoft_tech_cloud_1779333396845.png',
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_cloud_1779333396845.png`,
       courseId: 3,
       tags: ['虚机', 'DevOps'],
       creator: '刘老师',

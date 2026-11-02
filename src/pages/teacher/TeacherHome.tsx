@@ -166,12 +166,12 @@ export default function TeacherHome() {
   const navigate = useNavigate();
 
   const defaultCovers = [
-    '/shixunnew-v2/images/covers/microsoft_tech_ai_1779333317936.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_data_1779333332856.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_cloud_1779333396845.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_cyber_1779333412582.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_dev_1779333430898.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_ml_1779333449102.png',
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ai_1779333317936.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_data_1779333332856.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_cloud_1779333396845.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_cyber_1779333412582.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_dev_1779333430898.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ml_1779333449102.png`,
   ];
 
   const teachingTools = [

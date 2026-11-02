@@ -84,7 +84,7 @@ export default function TeacherDatasets({
       starCount: 128,
       referenceCount: 214,
       size: '11 MB',
-      image: '/shixunnew-v2/images/covers/microsoft_tech_data_1779333332856.png'
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_data_1779333332856.png`
     },
     {
       id: 2,
@@ -101,7 +101,7 @@ export default function TeacherDatasets({
       starCount: 256,
       referenceCount: 89,
       size: '1.25 GB',
-      image: '/shixunnew-v2/images/covers/microsoft_tech_ai_1779333317936.png'
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ai_1779333317936.png`
     },
     {
       id: 3,
@@ -118,7 +118,7 @@ export default function TeacherDatasets({
       starCount: 64,
       referenceCount: 18,
       size: '340 MB',
-      image: '/shixunnew-v2/images/covers/microsoft_tech_ml_1779333449102.png'
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ml_1779333449102.png`
     }
   ];
 
@@ -396,7 +396,7 @@ export default function TeacherDatasets({
         updateTime: new Date().toISOString().split('T')[0],
         starCount: 0,
         referenceCount: 0,
-        image: '/shixunnew-v2/images/covers/microsoft_tech_data_1779333332856.png'
+        image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_data_1779333332856.png`
       };
       setDatasets([newDataset, ...datasets]);
       showToast('数据集创建成功');
@@ -495,7 +495,7 @@ export default function TeacherDatasets({
                             className="w-20 h-14 rounded-md overflow-hidden flex-shrink-0 border border-neutral-200/60 shadow-xs relative bg-neutral-100 cursor-pointer group/img"
                           >
                             <img 
-                              src={ds.image || '/shixunnew-v2/images/covers/microsoft_tech_data_1779333332856.png'} 
+                              src={ds.image || `${import.meta.env.BASE_URL}images/covers/microsoft_tech_data_1779333332856.png`}
                               alt={ds.name} 
                               className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500" 
                               referrerPolicy="no-referrer" 

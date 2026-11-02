@@ -64,7 +64,7 @@ export default function DatasetDetail({ dataset, onBack }: DatasetDetailProps) {
   const [formTags, setFormTags] = useState<string[]>([]);
   const [formDesc, setFormDesc] = useState('');
   const [formIntroduction, setFormIntroduction] = useState('');
-  const [selectedCover, setSelectedCover] = useState('/shixunnew-v2/images/covers/microsoft_tech_ai_1779333317936.png');
+  const [selectedCover, setSelectedCover] = useState(`${import.meta.env.BASE_URL}images/covers/microsoft_tech_ai_1779333317936.png`);
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
   const tagDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -82,12 +82,12 @@ export default function DatasetDetail({ dataset, onBack }: DatasetDetailProps) {
   ]);
 
   const defaultCovers = [
-    '/shixunnew-v2/images/covers/microsoft_tech_ai_1779333317936.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_data_1779333332856.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_cloud_1779333396845.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_cyber_1779333412582.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_dev_1779333430898.png',
-    '/shixunnew-v2/images/covers/microsoft_tech_ml_1779333449102.png',
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ai_1779333317936.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_data_1779333332856.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_cloud_1779333396845.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_cyber_1779333412582.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_dev_1779333430898.png`,
+    `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ml_1779333449102.png`,
   ];
 
   const availableTagsList = ['AI', '容器', '虚机', 'Java', 'Python', '数据分析', 'DevOps', '大模型'];
@@ -124,7 +124,7 @@ export default function DatasetDetail({ dataset, onBack }: DatasetDetailProps) {
   const datasetReferenceCount = dataset?.referenceCount ?? 214;
   const datasetStarCount = dataset?.starCount ?? 128;
   const datasetSize = dataset?.size || '11 MB';
-  const datasetImage = dataset?.image || '/shixunnew-v2/images/covers/microsoft_tech_data_1779333332856.png';
+  const datasetImage = dataset?.image || `${import.meta.env.BASE_URL}images/covers/microsoft_tech_data_1779333332856.png`;
 
   if (showExperimentIDE) {
     return <TeacherExperimentIDE onBack={() => setShowExperimentIDE(false)} />;
