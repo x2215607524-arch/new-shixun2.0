@@ -966,7 +966,7 @@ export default function UserPractices() {
         {/* Left Sidebar */}
         <div className="w-[260px] bg-[#f9f9f9] border-r border-neutral-200 flex flex-col shrink-0">
           <div className="h-16 flex items-center px-5 gap-2 text-[#fa541c] font-bold text-[18px]">
-            <Layers className="w-5 h-5" /> 智云实训平台
+            <Layers className="w-5 h-5" /> 翼实训平台
           </div>
           <div className="px-5 py-3 text-[12px] text-neutral-400 font-medium">历史对话</div>
           <div className="flex-1 overflow-y-auto px-3 space-y-0.5 custom-scrollbar">
@@ -979,7 +979,7 @@ export default function UserPractices() {
           </div>
           <div className="p-4 border-t border-neutral-200 flex items-center justify-between text-neutral-500">
             <button className="flex items-center gap-2 text-[13px] hover:text-neutral-800 transition-colors">
-              <Info className="w-4 h-4" /> 关于智云实训
+              <Info className="w-4 h-4" /> 关于翼实训平台
             </button>
             <button className="p-1.5 hover:bg-neutral-200 rounded-md transition-colors">
               <Download className="w-4 h-4" />

@@ -331,7 +331,7 @@ export default function AdminResourcesPage() {
         <div>
           <h1 className="text-xl font-black text-neutral-title flex items-center gap-2.5">
             <Database className="w-6 h-6 text-[#fa541c]" />
-            <span>智云实训运营端 - 公共实训资源控制台</span>
+            <span>翼实训平台运营端 - 公共实训资源控制台</span>
           </h1>
           <p className="text-xs text-neutral-caption mt-1">
             超级管理员对实训平台中所有已审核通过的课程、项目、数据集、最佳实践、ai能力执行集中管控、在线结构化查看、沙箱部署以及违规驳回下架。

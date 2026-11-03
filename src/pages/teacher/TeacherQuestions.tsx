@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Edit, Plus, Upload, Globe, Search, Brain, HelpCircle, ChevronDown, ChevronUp, Trash2, X, ChevronLeft, ArrowLeft, Send, MessageSquare, Database, Sparkles, Check, Info, Layers, Loader2, Copy, XCircle, CheckCircle2 } from 'lucide-react';
+import { Edit, Plus, Upload, Globe, Search, Brain, HelpCircle, ChevronDown, ChevronUp, Trash2, X, ChevronLeft, ArrowLeft, Send, MessageSquare, Database, Sparkles, Check, Info, Layers, Loader2, Copy, XCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CustomSelect } from './TeacherProjects';
@@ -116,6 +116,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   );
 };
 
+type DatasetSyncStatus = '同步中' | '同步成功' | '同步失败';
 const AVAILABLE_DATASETS = [
   { name: 'house_prices_train.csv', size: '42.5 MB' },
   { name: 'house_prices_test.csv', size: '12.8 MB' },
@@ -340,15 +341,15 @@ const parseSubnet = (subnetStr: string) => {
     standardStr = '192.168.1.0/24';
   } else {
     // extract IP range from string like 'subnet-default-a (192.168.1.0/24)'
-    const match = subnetStr.match(/192\.168\.\d+\.0\/\d+/);
+    const match = subnetStr.match(/192\.168\.\d*\.\d*\/\d+/);
     if (match) {
       standardStr = match[0];
     }
   }
 
   const parts = standardStr.split(/[./]/);
-  const octet3 = parts[2] || '1';
-  const octet4 = parts[3] || '0';
+  const octet3 = parts[2] ?? '1';
+  const octet4 = parts[3] ?? '0';
   const mask = parts[4] || '24';
   return { octet3, octet4, mask };
 };
@@ -693,6 +694,28 @@ export default function TeacherQuestions() {
   const [shixunDescription, setShixunDescription] = useState(`### 任务名称\n内容描述\n### 任务描述\n内容描述\n### 任务要求\n内容描述\n### 评分方式\n内容描述`);
   const [shixunAnswerType, setShixunAnswerType] = useState('线上环境答题');
   const [shixunDatasets, setShixunDatasets] = useState<string[]>([]);
+  const [datasetSyncStatuses, setDatasetSyncStatuses] = useState<Record<string, DatasetSyncStatus>>({});
+  const syncTimers = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const clearDatasetSync = () => {
+    Object.values(syncTimers.current).forEach(clearTimeout);
+    syncTimers.current = {};
+  };
+  React.useEffect(() => () => clearDatasetSync(), []);
+  const retryDatasetSync = (name: string) => {
+    clearTimeout(syncTimers.current[name]);
+    setDatasetSyncStatuses(previous => ({ ...previous, [name]: '同步中' }));
+    // Frontend simulation until a dataset synchronization API is available.
+    syncTimers.current[name] = setTimeout(() => {
+      setDatasetSyncStatuses(previous => ({ ...previous, [name]: '同步成功' }));
+      delete syncTimers.current[name];
+    }, 2000);
+  };
+  const removeDataset = (name: string) => {
+    clearTimeout(syncTimers.current[name]);
+    delete syncTimers.current[name];
+    setShixunDatasets(previous => previous.filter(item => item !== name));
+    setDatasetSyncStatuses(previous => { const next = { ...previous }; delete next[name]; return next; });
+  };
   const [isDatasetDropdownOpen, setIsDatasetDropdownOpen] = useState(false);
   const [shixunOfflineFile, setShixunOfflineFile] = useState<string>('');
   const [shixunResourcePool, setShixunResourcePool] = useState('天翼云资源池1');
@@ -867,6 +890,8 @@ export default function TeacherQuestions() {
     {
       id: 4,
       name: '基于大模型的端到端自动驾驶系统开发',
+      shixunDatasets: AVAILABLE_DATASETS.slice(0, 3).map(dataset => dataset.name),
+      datasetSyncStatuses: { 'house_prices_train.csv': '同步中', 'house_prices_test.csv': '同步成功', 'house_prices_eval.csv': '同步失败' } as Record<string, DatasetSyncStatus>,
       bank: '人工智能通识D-uni',
       type: '实训题',
       status: '启用',
@@ -878,6 +903,40 @@ export default function TeacherQuestions() {
       updateTime: '2026/05/16 11:20',
       scope: '私有',
       auditStatus: '未审核'
+    },
+    {
+      id: 5,
+      name: '房价预测模型训练与评估实训',
+      bank: '人工智能通识D-uni',
+      type: '实训题',
+      status: '数据集同步中',
+      source: '人工出题',
+      difficulty: '中等',
+      tags: '机器学习, 回归预测',
+      grading: '自动评分',
+      creator: 'Momodel',
+      updateTime: '2026/11/02 10:00',
+      scope: '私有',
+      auditStatus: '未审核',
+      shixunDatasets: ['house_prices_train.csv', 'house_prices_test.csv'],
+      datasetSyncStatuses: { 'house_prices_train.csv': '同步中', 'house_prices_test.csv': '同步成功' } as Record<string, DatasetSyncStatus>,
+    },
+    {
+      id: 6,
+      name: '手写数字识别模型开发实训',
+      bank: '人工智能通识D-uni',
+      type: '实训题',
+      status: '数据集同步失败',
+      source: '人工出题',
+      difficulty: '中等',
+      tags: '深度学习, 图像识别',
+      grading: '自动评分',
+      creator: 'Momodel',
+      updateTime: '2026/11/02 10:10',
+      scope: '私有',
+      auditStatus: '未审核',
+      shixunDatasets: ['mnist_train.bin', 'mnist_test.bin'],
+      datasetSyncStatuses: { 'mnist_train.bin': '同步失败', 'mnist_test.bin': '同步成功' } as Record<string, DatasetSyncStatus>,
     }
   ]);
 
@@ -1053,6 +1112,8 @@ export default function TeacherQuestions() {
     setShixunAnswerType('线上环境答题');
     setShixunResourcePool('天翼云资源池1');
     setShixunDatasets([]);
+    clearDatasetSync();
+    setDatasetSyncStatuses({});
     setIsDatasetDropdownOpen(false);
     setShixunOfflineFile('');
     setShixunEnvType('容器');
@@ -1126,6 +1187,10 @@ export default function TeacherQuestions() {
   };
 
   const handleEditQuestion = (q: any) => {
+    clearDatasetSync();
+    setShixunDatasets(q.shixunDatasets || []);
+    setDatasetSyncStatuses(q.datasetSyncStatuses || Object.fromEntries((q.shixunDatasets || []).map((name: string) => [name, '同步成功'])));
+    setIsDatasetDropdownOpen(false);
     setEditingQuestion(q);
     setNewQuestionBank(q.bank);
     setNewQuestionType(q.type);
@@ -1377,6 +1442,8 @@ export default function TeacherQuestions() {
             scoreItems: newQuestionType === '填空题' ? scoreItems : undefined,
             correctAnswer: newQuestionType === '简答题' ? correctAnswerText : undefined,
             shixunDescription: newQuestionType === '实训题' ? shixunDescription : undefined,
+            shixunDatasets: newQuestionType === '实训题' ? [...shixunDatasets] : undefined,
+            datasetSyncStatuses: newQuestionType === '实训题' ? { ...datasetSyncStatuses } : undefined,
             shixunAnswerType: newQuestionType === '实训题' ? shixunAnswerType : undefined,
             shixunResourcePool: newQuestionType === '实训题' ? shixunResourcePool : undefined,
             shixunEnvType: newQuestionType === '实训题' ? shixunEnvType : undefined,
@@ -1403,6 +1470,8 @@ export default function TeacherQuestions() {
         scoreItems: newQuestionType === '填空题' ? scoreItems : undefined,
         correctAnswer: newQuestionType === '简答题' ? correctAnswerText : undefined,
         shixunDescription: newQuestionType === '实训题' ? shixunDescription : undefined,
+        shixunDatasets: newQuestionType === '实训题' ? [...shixunDatasets] : undefined,
+        datasetSyncStatuses: newQuestionType === '实训题' ? { ...datasetSyncStatuses } : undefined,
         shixunAnswerType: newQuestionType === '实训题' ? shixunAnswerType : undefined,
         shixunResourcePool: newQuestionType === '实训题' ? shixunResourcePool : undefined,
         shixunEnvType: newQuestionType === '实训题' ? shixunEnvType : undefined,
@@ -1535,6 +1604,8 @@ export default function TeacherQuestions() {
                         <span className={cn(
                           "px-2 py-0.5 text-[12px] rounded border font-medium", 
                           q.status === '启用' ? "bg-green-50 text-green-600 border-green-200" : 
+                          q.status === '数据集同步中' ? "bg-blue-50 text-blue-600 border-blue-200" :
+                          q.status === '数据集同步失败' ? "bg-red-50 text-red-500 border-red-200" :
                           q.status === '已下架' ? "bg-neutral-100 text-neutral-600 border-neutral-200" :
                           "bg-neutral-50 text-neutral-500 border-neutral-200"
                         )}>
@@ -3596,31 +3667,42 @@ export default function TeacherQuestions() {
                                               />
                                               <span className="text-neutral-400 font-bold">.</span>
                                               
-                                              <select
+                                              <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                aria-label="子网地址第三段"
+                                                pattern="[0-9]{1,3}"
+                                                required
+                                                maxLength={3}
                                                 value={(() => {
                                                   const { octet3 } = parseSubnet(activeVm.vmSubnet || '192.168.1.0/24');
                                                   return octet3;
                                                 })()}
                                                 onChange={(e) => {
                                                   const val = e.target.value;
-                                                  const { mask } = parseSubnet(activeVm.vmSubnet || '192.168.1.0/24');
-                                                  updateVmField('vmSubnet', `192.168.${val}.0/${mask}`);
+                                                  if (!/^\d{0,3}$/.test(val) || Number(val) > 255) return;
+                                                  const { octet4, mask } = parseSubnet(activeVm.vmSubnet || '192.168.1.0/24');
+                                                  updateVmField('vmSubnet', `192.168.${val}.${octet4}/${mask}`);
                                                 }}
-                                                className="px-2 py-1.5 border border-neutral-200 rounded text-[13px] text-[#262626] bg-white focus:outline-none focus:border-[#fa541c] disabled:bg-neutral-50 disabled:text-neutral-500 cursor-pointer min-w-[50px] text-center font-bold"
-                                              >
-                                                <option value="1">1</option>
-                                                <option value="2">2</option>
-                                                <option value="3">3</option>
-                                                <option value="4">4</option>
-                                                <option value="5">5</option>
-                                              </select>
+                                                className="w-12 text-center bg-white border border-neutral-200 rounded py-1.5 text-[13px] text-[#262626] focus:outline-none focus:border-[#fa541c]"
+                                              />
                                               <span className="text-neutral-400 font-bold">.</span>
                                               
                                               <input
                                                 type="text"
-                                                value="0"
-                                                disabled
-                                                className="w-12 text-center bg-neutral-50 border border-neutral-200 rounded py-1.5 text-[13px] text-neutral-550 cursor-not-allowed select-none focus:outline-none"
+                                                inputMode="numeric"
+                                                aria-label="子网地址第四段"
+                                                pattern="[0-9]{1,3}"
+                                                required
+                                                maxLength={3}
+                                                value={parseSubnet(activeVm.vmSubnet || '192.168.1.0/24').octet4}
+                                                onChange={event => {
+                                                  const val = event.target.value;
+                                                  if (!/^\d{0,3}$/.test(val) || Number(val) > 255) return;
+                                                  const { octet3, mask } = parseSubnet(activeVm.vmSubnet || '192.168.1.0/24');
+                                                  updateVmField('vmSubnet', `192.168.${octet3}.${val}/${mask}`);
+                                                }}
+                                                className="w-12 text-center bg-white border border-neutral-200 rounded py-1.5 text-[13px] text-[#262626] focus:outline-none focus:border-[#fa541c]"
                                               />
                                               <span className="text-neutral-400 font-bold">/</span>
                                               
@@ -3631,13 +3713,14 @@ export default function TeacherQuestions() {
                                                 })()}
                                                 onChange={(e) => {
                                                   const val = e.target.value;
-                                                  const { octet3 } = parseSubnet(activeVm.vmSubnet || '192.168.1.0/24');
-                                                  updateVmField('vmSubnet', `192.168.${octet3}.0/${val}`);
+                                                  const { octet3, octet4 } = parseSubnet(activeVm.vmSubnet || '192.168.1.0/24');
+                                                  updateVmField('vmSubnet', `192.168.${octet3}.${octet4}/${val}`);
                                                 }}
                                                 className="px-2 py-1.5 border border-neutral-200 rounded text-[13px] text-[#262626] bg-white focus:outline-none focus:border-[#fa541c] disabled:bg-neutral-50 disabled:text-neutral-500 cursor-pointer min-w-[58px] text-center font-bold"
                                               >
                                                 <option value="16">16</option>
                                                 <option value="24">24</option>
+                                                <option value="32">32</option>
                                               </select>
                                             </div>
                                           </div>
@@ -3758,9 +3841,10 @@ export default function TeacherQuestions() {
                                       checked={isSelected}
                                       onChange={() => {
                                         if (isSelected) {
-                                          setShixunDatasets(shixunDatasets.filter(name => name !== ds.name));
+                                          removeDataset(ds.name);
                                         } else {
-                                          setShixunDatasets([...shixunDatasets, ds.name]);
+                                          setShixunDatasets(previous => [...previous, ds.name]);
+                                          retryDatasetSync(ds.name);
                                         }
                                       }}
                                       className="w-4 h-4 text-[#fa541c] accent-[#fa541c] border-neutral-300 rounded focus:ring-[#fa541c] cursor-pointer"
@@ -3777,23 +3861,32 @@ export default function TeacherQuestions() {
 
                       {/* 已选数据集展示 */}
                       {shixunDatasets.length > 0 && (
-                        <div className="space-y-2 pl-1 pt-1">
+                        <div className="space-y-2 pt-1">
+                          <p className="text-xs text-neutral-500">已选择 {shixunDatasets.length} 个数据集</p>
                           {shixunDatasets.map((datasetName) => {
                             const dsInfo = AVAILABLE_DATASETS.find(d => d.name === datasetName) || { name: datasetName, size: '未知大小' };
+                            const syncStatus = datasetSyncStatuses[datasetName] || '同步成功';
                             return (
-                              <div key={datasetName} className="flex items-center justify-between p-2.5 bg-[#fff2e8]/20 border border-[#ffbb96]/45 rounded-lg animate-slide-up">
-                                <div className="flex items-center gap-2 text-xs text-neutral-700">
-                                  <Database className="w-4 h-4 text-[#fa541c]" />
-                                  <span className="font-medium">{dsInfo.name}</span>
+                              <div key={datasetName} className="flex flex-wrap items-center justify-between gap-3 p-3 bg-neutral-50/40 border border-neutral-200 rounded-[6px]">
+                                <div className="flex flex-wrap min-w-0 items-center gap-2 text-xs text-neutral-700">
+                                  <Database className="w-4 h-4 shrink-0 text-[#fa541c]" />
+                                  <span className="font-medium break-all">{dsInfo.name}</span>
                                   <span className="text-neutral-400 text-[10px]">({dsInfo.size})</span>
                                 </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                <span role="status" className={cn('inline-flex items-center gap-1 text-[11px]', syncStatus === '同步中' ? 'text-blue-500' : syncStatus === '同步成功' ? 'text-green-600' : 'text-red-500')}>
+                                  {syncStatus === '同步中' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : syncStatus === '同步成功' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}{syncStatus}
+                                </span>
+                                <button type="button" aria-label={`重试同步${datasetName}`} onClick={() => retryDatasetSync(datasetName)} className="inline-flex items-center gap-1 text-[11px] text-[#fa541c] hover:text-[#e84a15] cursor-pointer"><RefreshCw className="w-3.5 h-3.5" />同步重试</button>
                                 <button
                                   type="button"
-                                  onClick={() => setShixunDatasets(shixunDatasets.filter(name => name !== datasetName))}
+                                  aria-label={`移除${datasetName}`}
+                                  onClick={() => removeDataset(datasetName)}
                                   className="text-neutral-400 hover:text-red-500 transition-colors text-xs font-bold p-1 cursor-pointer"
                                 >
                                   ✕
                                 </button>
+                                </div>
                               </div>
                             );
                           })}

@@ -11,11 +11,11 @@ export default function Footer() {
             <Link to="/" className="flex items-center gap-2 mb-6">
               <ZhiYunLogo className="w-8 h-8 text-[#fa541c]" />
               <span className="text-xl font-bold text-slate-900">
-                智云实训平台
+                翼实训平台
               </span>
             </Link>
             <p className="text-slate-500 text-sm leading-relaxed mb-6">
-              新一代智云实训平台，致力于培养具备实战能力的AI工程师，助力企业数字化转型。
+              新一代翼实训平台，致力于培养具备实战能力的AI工程师，助力企业数字化转型。
             </p>
             <div className="flex items-center gap-4">
               <a href="#" className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-[#fa541c] hover:text-white transition-colors">
@@ -71,7 +71,7 @@ export default function Footer() {
         
         <div className="pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-slate-400 text-sm">
-            © {new Date().getFullYear()} 智云实训平台. All rights reserved.
+            © {new Date().getFullYear()} 翼实训平台. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <Link to="#" className="text-slate-400 hover:text-[#fa541c] text-sm transition-colors">隐私政策</Link>

@@ -161,7 +161,7 @@ export default function LoginAdmin() {
         <Link to="/" className="flex items-center gap-3 mb-16 hover:opacity-90 transition-opacity absolute top-8 left-8 z-20 text-white drop-shadow-md">
           <ZhiYunLogo className="w-12 h-12 text-white drop-shadow-md animate-pulse" strokeWidth={2} />
           <span className="text-[24px] font-bold tracking-widest">
-            智云实训平台
+            翼实训平台
           </span>
         </Link>
       </div>
@@ -416,7 +416,7 @@ export default function LoginAdmin() {
                   />
                   <label htmlFor="agree-admin" className="cursor-pointer select-none">
                     我已阅读并承诺遵守
-                    <a href="#" className="text-primary hover:underline font-medium">《智云实训平台数据合规协议》</a>
+                    <a href="#" className="text-primary hover:underline font-medium">《翼实训平台数据合规协议》</a>
                     与
                     <a href="#" className="text-primary hover:underline font-medium">《信息安全及涉密保密制度》</a>
                   </label>

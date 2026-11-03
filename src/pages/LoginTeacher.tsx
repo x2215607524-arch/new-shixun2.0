@@ -163,7 +163,7 @@ export default function LoginTeacher() {
         <Link to="/" className="flex items-center gap-3 mb-16 hover:opacity-90 transition-opacity absolute top-8 left-8 z-20 text-white drop-shadow-md">
           <ZhiYunLogo className="w-12 h-12 text-white drop-shadow-md animate-pulse" strokeWidth={2} />
           <span className="text-[24px] font-bold tracking-widest">
-            智云实训平台
+            翼实训平台
           </span>
         </Link>
       </div>

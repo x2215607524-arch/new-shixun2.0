@@ -40,7 +40,7 @@ export default function PracticeChat() {
               <path d="M12 2L2 7l10 5 10-5-10-5z" fill="currentColor" fillOpacity="0.2"/>
               <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
-            智云实训平台
+            翼实训平台
           </div>
         </div>
 
@@ -64,7 +64,7 @@ export default function PracticeChat() {
         <div className="p-4 border-t border-neutral-200 flex justify-between items-center text-neutral-500">
           <button className="flex items-center gap-2 text-[13px] hover:text-neutral-800 transition-colors">
             <Info className="w-4 h-4" />
-            关于智云实训
+            关于翼实训平台
           </button>
           <button className="hover:text-neutral-800 transition-colors">
             <Download className="w-4 h-4" />

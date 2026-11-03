@@ -19,7 +19,7 @@ export default function Login() {
       <div className="w-full max-w-[400px] bg-white rounded-[8px] shadow-lg border border-neutral-border p-8">
         <div className="mb-10 flex flex-col items-center">
           <ZhiYunLogo className="w-12 h-12 text-[#fa541c] mb-4" />
-          <h1 className="text-[24px] font-medium text-neutral-title">登录智云实训平台</h1>
+          <h1 className="text-[24px] font-medium text-neutral-title">登录翼实训平台</h1>
           <p className="text-[14px] text-neutral-caption mt-2">欢迎回来，请登录您的账号</p>
         </div>
 

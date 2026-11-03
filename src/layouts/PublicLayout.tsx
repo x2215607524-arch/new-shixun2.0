@@ -28,7 +28,7 @@ export default function PublicLayout() {
             <Link to="/" className="flex items-center gap-2">
               <ZhiYunLogo className="w-8 h-8 text-primary" />
               <span className={cn("font-medium text-neutral-title", isCompetition ? "text-[15px] sm:text-[18px]" : "text-[18px]")}>
-                智云实训平台
+                翼实训平台
               </span>
             </Link>
             <nav className="hidden md:flex items-center gap-6 text-[14px]">
@@ -41,9 +41,7 @@ export default function PublicLayout() {
                 <div className="absolute top-full left-0 hidden group-hover:block">
                   <div className="w-48 rounded-[6px] border border-neutral-border bg-neutral-surface p-2 shadow-sm">
                     <Link to="/user" onClick={() => localStorage.removeItem('isLoggedIn')} className="block px-3 py-2 hover:bg-neutral-bg rounded-[4px] text-neutral-title transition-colors">人工智能</Link>
-                    <Link to="/login" className="block px-3 py-2 hover:bg-neutral-bg rounded-[4px] text-neutral-title transition-colors">安全运维</Link>
-                    <Link to="/login" className="block px-3 py-2 hover:bg-neutral-bg rounded-[4px] text-neutral-title transition-colors">私有云</Link>
-                    <Link to="/login" className="block px-3 py-2 hover:bg-neutral-bg rounded-[4px] text-neutral-title transition-colors">公有云</Link>
+                    <Link to="/login" className="block px-3 py-2 hover:bg-neutral-bg rounded-[4px] text-neutral-title transition-colors">网络仿真</Link>
                   </div>
                 </div>
               </div>
@@ -97,7 +95,7 @@ export default function PublicLayout() {
         <span>|</span>
         <Link to="#" className="hover:text-neutral-title transition-colors">服务条款</Link>
         <span>|</span>
-        <span>©2025 智云实训2.0</span>
+        <span>©2025 翼实训平台</span>
         <span>|</span>
         <span>京ICP备12345678号</span>
       </footer>

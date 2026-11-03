@@ -51,6 +51,7 @@ interface Dataset {
   image?: string;
   courseId?: number | null;
   courseName?: string;
+  resourcePool?: string;
 }
 
 interface TeacherDatasetsProps {
@@ -281,6 +282,7 @@ export default function TeacherDatasets({
   // Form states
   const [formName, setFormName] = useState('');
   const [formDesc, setFormDesc] = useState('');
+  const [formResourcePool, setFormResourcePool] = useState('资源池1');
   const [formType, setFormType] = useState<Dataset['type']>('文本');
   const [formTags, setFormTags] = useState<string[]>([]);
   const [formScope, setFormScope] = useState<'私有' | '公开'>('私有');
@@ -339,6 +341,7 @@ export default function TeacherDatasets({
     setCurrentId(null);
     setFormName('');
     setFormDesc('');
+    setFormResourcePool('资源池1');
     setFormType('文本');
     setFormTags([]);
     setFormScope('私有');
@@ -352,6 +355,7 @@ export default function TeacherDatasets({
     setCurrentId(ds.id);
     setFormName(ds.name);
     setFormDesc(ds.desc);
+    setFormResourcePool(ds.resourcePool || '资源池1');
     setFormType(ds.type);
     setFormTags(ds.tags || []);
     setFormScope(ds.scope === '公共' || ds.scope === '租户' ? '公开' : '私有');
@@ -373,6 +377,7 @@ export default function TeacherDatasets({
         ...d,
         name: formName,
         desc: formDesc,
+        resourcePool: formResourcePool,
         type: formScope === '私有' ? '文本' : formType,
         tags: tagsArray,
         scope: formScope === '公开' ? '公共' : '私有',
@@ -385,6 +390,7 @@ export default function TeacherDatasets({
         name: formName,
         subtitle: formDesc || formName,
         desc: formDesc,
+        resourcePool: formResourcePool,
         creator: 'liuwei01',
         type: formScope === '私有' ? '文本' : formType,
         tags: tagsArray,
@@ -702,7 +708,28 @@ export default function TeacherDatasets({
                 />
               </div>
 
-              {/* 权限 (描述下方) */}
+              <div className="grid grid-cols-[80px_1fr] items-start gap-4">
+                <span className="text-[13px] font-bold text-neutral-400 text-right pt-1">
+                  资源池 <span className="text-[#fa541c]">*</span>
+                </span>
+                <div role="radiogroup" aria-label="资源池" className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-1">
+                  {['资源池1', '天翼云资源池1', '上海园区资源池'].map(pool => (
+                    <label key={pool} className="inline-flex items-center gap-2 cursor-pointer text-[13px] font-medium text-neutral-800">
+                      <input
+                        type="radio"
+                        name="datasetResourcePool"
+                        value={pool}
+                        checked={formResourcePool === pool}
+                        onChange={() => setFormResourcePool(pool)}
+                        className="accent-[#fa541c] w-4 h-4 cursor-pointer"
+                      />
+                      <span>{pool}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 权限 */}
               <div className="grid grid-cols-[80px_1fr] items-start gap-4">
                 <label className="text-[13px] font-bold text-neutral-400 text-right pt-1.5">
                   权限 <span className="text-[#fa541c]">*</span>

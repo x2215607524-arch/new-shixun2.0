@@ -114,7 +114,7 @@ const SUCCESS_CASES = [
       { label: "系统可用性", val: "99.99%" }
     ],
     detail: {
-      overview: "作为全国职工技能竞技的最高殿堂，本届竞赛全面引入智云实训平台作为官方评测环境。大赛由全国总工会主办，聚焦新一代数据科学与智能运维技能。我们提供了全方位的算力支持与防作弊守护，确保全国赛区同步安全、公平展开。",
+      overview: "作为全国职工技能竞技的最高殿堂，本届竞赛全面引入翼实训平台作为官方评测环境。大赛由全国总工会主办，聚焦新一代数据科学与智能运维技能。我们提供了全方位的算力支持与防作弊守护，确保全国赛区同步安全、公平展开。",
       metrics: [
         { label: "最高并发在线沙箱", val: "2,400+ 个" },
         { label: "实操自动化评测响应", val: "1.2 秒" },
@@ -164,7 +164,7 @@ const SUCCESS_CASES = [
         { label: "教师联合教改项目", val: "150+ 个" },
         { label: "学生技能认证通过率", val: "92%" }
       ],
-      achievement: "“智云平台的数字化课程与云沙箱技术，完美解决了我们实验课GPU环境安装难、管理难的瓶颈，是卓越工程师培养的利器。” —— 某985高校教务处长"
+      achievement: "“翼实训平台的数字化课程与云沙箱技术，完美解决了我们实验课GPU环境安装难、管理难的瓶颈，是卓越工程师培养的利器。” —— 某985高校教务处长"
     }
   },
   {
@@ -544,7 +544,7 @@ const renderFeatureMockup = (mockType: string) => {
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const scenarios = ["人工智能", "安全运维", "私有云", "公有云"];
+  const scenarios = ["人工智能", "网络仿真"];
   const [activeScenario, setActiveScenario] = useState(scenarios[0]);
   const [activeFeature, setActiveFeature] = useState("courses");
   const [activeScenarioId, setActiveScenarioId] = useState("ai");
@@ -553,7 +553,7 @@ export default function Home() {
     {
       title: "",
       subtitle: "",
-      image: "/images/banner2.jpg",
+      image: "/images/banner2-yi.png",
       isStaticImage: true,
       link: "/user/courses"
     },
@@ -610,7 +610,7 @@ export default function Home() {
                 >
                   <img 
                     src={`${import.meta.env.BASE_URL.replace(/\/$/, "")}${slide.image}`} 
-                    alt="智联未来 云启成长" 
+                    alt="翼实训平台 · 智联云端，实践未来"
                     className="w-full h-full object-cover object-left md:object-center transition-all duration-500"
                   />
                 </Link>

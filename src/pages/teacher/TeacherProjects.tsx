@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import DatasetSyncSelector, { type SelectedDataset } from '@/components/DatasetSyncSelector';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 interface EnvConfig {
@@ -79,6 +80,7 @@ interface EnvConfig {
 }
 
 interface Project {
+  datasets?: SelectedDataset[];
   id: number;
   name: string;
   desc: string;
@@ -329,6 +331,7 @@ export default function TeacherProjects({
   const [formDifficulty, setFormDifficulty] = useState<'初级' | '中级' | '高级'>('中级');
   const [formDuration, setFormDuration] = useState('8');
   const [selectedCover, setSelectedCover] = useState(defaultCovers[0]);
+  const [formDatasets, setFormDatasets] = useState<SelectedDataset[]>([]);
   
   // New States for tags and environment configs
   const [formTags, setFormTags] = useState<string[]>([]);
@@ -596,6 +599,7 @@ export default function TeacherProjects({
 
 
   const handleCreateNew = () => {
+    setFormDatasets([]);
     setCurrentProjectId(null);
     setFormName('');
     setFormDesc('');
@@ -651,6 +655,7 @@ export default function TeacherProjects({
   }, [location.state, location.search]);
 
   const handleEditProject = (proj: Project) => {
+    setFormDatasets((proj.datasets || []).map(dataset => ({ ...dataset })));
     setCurrentProjectId(proj.id);
     setFormName(proj.name);
     setFormDesc(proj.desc);
@@ -735,6 +740,7 @@ export default function TeacherProjects({
       status: finalStatus,
       updateTime: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/-/g, '/'),
       image: selectedCover,
+      datasets: formDatasets.map(dataset => ({ ...dataset })),
       courseId: currentProjectId ? projectsList.find(p => p.id === currentProjectId)?.courseId : (incomingCourseId || undefined),
       tags: formTags,
       environments: formEnvironments,
@@ -814,6 +820,7 @@ export default function TeacherProjects({
   };
 
   const handleViewDetails = (proj: Project) => {
+    setFormDatasets((proj.datasets || []).map(dataset => ({ ...dataset })));
     setCurrentProjectId(proj.id);
     setFormName(proj.name);
     setFormDesc(proj.desc);
@@ -1474,7 +1481,6 @@ export default function TeacherProjects({
               )}              {/* TAB 2: PROJECT ENVIRONMENT (MULTI-INSTANCE CONFIG) */}
               {activeFormTab === 'env' && (
                 <div className="space-y-6 animate-fade-in py-2">
-                  
                   {/* 1. 选择资源池 */}
                   <div className="grid grid-cols-[100px_1fr] items-center gap-4 animate-fade-in">
                     <label className="text-[13px] font-bold text-[#262626] text-right">
@@ -2311,6 +2317,10 @@ export default function TeacherProjects({
                     </div>
                   )}
 
+                  <div className="grid grid-cols-1 sm:grid-cols-[100px_minmax(0,1fr)] items-start gap-4">
+                    <span className="text-[13px] font-bold text-[#262626] sm:text-right pt-1">数据集选择</span>
+                    <DatasetSyncSelector value={formDatasets} onChange={setFormDatasets} disabled={modalMode === 'view'} />
+                  </div>
                 </div>
               )}
 

@@ -170,7 +170,7 @@ export default function DatasetDetail({ dataset, onBack }: DatasetDetailProps) {
                 <ChevronLeft className="w-4 h-4" /> 返回数据集列表
               </button>
               <span className="mx-2 text-neutral-400">/</span>
-              <span className="hover:text-[#fa541c] cursor-pointer">智云平台</span>
+              <span className="hover:text-[#fa541c] cursor-pointer">翼实训平台</span>
               <span className="mx-2 text-neutral-400">/</span>
               <span className="hover:text-[#fa541c] cursor-pointer">数据集中心</span>
               <span className="mx-2 text-neutral-400">/</span>

@@ -1119,7 +1119,7 @@ export default function AdminAIPractices() {
                           <span>术语与排版格式规范度得分 (Standardization)</span>
                           <span className="text-[#fa541c] font-black">{scoreStandard}分</span>
                         </div>
-                        <p className="text-[10px] text-neutral-400 leading-normal pb-1">排版、语言、中英文标点是否完全遵循智云实训平台大模型发布规范。</p>
+                        <p className="text-[10px] text-neutral-400 leading-normal pb-1">排版、语言、中英文标点是否完全遵循翼实训平台大模型发布规范。</p>
                         <input 
                           type="range"
                           min="1"

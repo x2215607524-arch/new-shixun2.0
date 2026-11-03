@@ -170,7 +170,7 @@ export default function DashboardLayout({ type }: DashboardLayoutProps) {
               <Link to="/" className="flex items-center gap-2 mr-4">
                 <ZhiYunLogo className="w-6 h-6 text-[#fa541c]" />
                 <span className="text-[16px] font-medium tracking-wide">
-                  {type === "admin" ? "智云实训平台" : "智云实训平台(人工智能)"}
+                  {type === "admin" ? "翼实训平台" : "翼实训平台"}
                 </span>
               </Link>
               

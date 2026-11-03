@@ -99,7 +99,7 @@ export default function UserOverview() {
           <div className="inline-flex items-center gap-2 bg-blue-50/50 backdrop-blur-md border border-blue-100 px-4 py-1.5 rounded-full text-sm font-medium mb-8 shadow-sm">
             <span className="w-6 h-6 flex items-center justify-center bg-gradient-to-br from-white/80 to-white/20 backdrop-blur-lg border border-white/50 shadow-sm rounded-md text-base">🚀</span> 
             <span className="bg-gradient-to-r from-[#fa541c] to-[#ff9c6e] bg-clip-text text-transparent font-bold">
-              {isLoggedIn ? '欢迎回来，cosmos' : '新一代智云实训平台'}
+              {isLoggedIn ? '欢迎回来，cosmos' : '新一代翼实训平台'}
             </span>
           </div>
           <h1 className="text-5xl md:text-7xl font-bold text-slate-900 mb-6 tracking-tight">

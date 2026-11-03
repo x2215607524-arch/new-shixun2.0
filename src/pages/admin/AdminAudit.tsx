@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 
 // --- Mock Data Interfaces & Syllabus Types ---
 
@@ -691,9 +692,14 @@ const initialResources: Record<"course" | "project" | "question" | "paper" | "ai
 
 export default function AdminAudit() {
   const [activeMenu, setActiveMenu] = useState<"course" | "project" | "question" | "paper" | "ai_capacity" | "practice" | "dataset">("course");
-  const [activeBusinessTab, setActiveBusinessTab] = useState<"人工智能" | "网络仿真">("人工智能");
   const [activeStatusFilter, setActiveStatusFilter] = useState<"全部" | "待审核" | "已通过" | "已驳回">("全部");
   const [searchQuery, setSearchQuery] = useState("");
+  const [scenarioFilter, setScenarioFilter] = useState<"全部" | "人工智能" | "网络仿真">("全部");
+
+  React.useEffect(() => {
+    setScenarioFilter("全部");
+    setSelectedItemIds([]);
+  }, [activeMenu]);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -721,20 +727,11 @@ export default function AdminAudit() {
 
   const [resources, setResources] = useState<Record<string, AuditResource[]>>(initialResources);
   const activeList = resources[activeMenu] || [];
-  const supportsBusinessTabs = ["course", "project", "question", "paper"].includes(activeMenu);
-  const networkSimulationKeywords = /网络|路由|交换|拓扑|仿真|云原生|容器|Kubernetes|微服务|安全运维|VPC|子网/i;
-  const businessScopedList = supportsBusinessTabs
-    ? activeList.filter(item => {
-        const searchableContent = [
-          item.name,
-          item.details.meta,
-          item.details.content,
-          ...item.details.outline,
-        ].join(" ");
-        const isNetworkSimulation = networkSimulationKeywords.test(searchableContent);
-        return activeBusinessTab === "网络仿真" ? isNetworkSimulation : !isNetworkSimulation;
-      })
-    : activeList;
+  const showsScenarioSource = ["course", "project", "question", "paper"].includes(activeMenu);
+  const getScenarioSource = (item: AuditResource): "人工智能" | "网络仿真" => {
+    const content = [item.name, item.details.meta, item.details.content, ...item.details.outline].join(" ");
+    return /网络|路由|交换|拓扑|仿真|云原生|容器|Kubernetes|微服务|安全运维|VPC|子网/i.test(content) ? "网络仿真" : "人工智能";
+  };
 
   // Review Drawer state
   const [reviewingItem, setReviewingItem] = useState<AuditResource | null>(null);
@@ -854,11 +851,12 @@ export default function AdminAudit() {
     triggerToast("已驳回申请，审核意见已安全投递到该校教师工作台。");
   };
 
-  const filteredResources = businessScopedList.filter(item => {
+  const filteredResources = activeList.filter(item => {
     const matchesStatus = activeStatusFilter === "全部" || item.status === activeStatusFilter;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           item.creator.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesSearch;
+    const matchesScenario = !showsScenarioSource || scenarioFilter === "全部" || getScenarioSource(item) === scenarioFilter;
+    return matchesStatus && matchesSearch && matchesScenario;
   });
 
   const totalPages = Math.ceil(filteredResources.length / pageSize) || 1;
@@ -997,47 +995,17 @@ export default function AdminAudit() {
           <div className="flex items-center gap-3">
             <div className="bg-white px-3 py-1.5 rounded border border-neutral-border text-xs flex items-center gap-2">
               <span className="text-neutral-500 font-medium">总数:</span>
-              <span className="font-bold text-neutral-800">{businessScopedList.length}</span>
+              <span className="font-bold text-neutral-800">{activeList.length}</span>
             </div>
             <div className="bg-white px-3 py-1.5 rounded border border-neutral-border text-xs flex items-center gap-2">
               <span className="text-neutral-500 font-medium">待审核:</span>
-              <span className="font-bold text-[#fa541c]">{businessScopedList.filter(item => item.status === "待审核").length}</span>
+              <span className="font-bold text-[#fa541c]">{activeList.filter(item => item.status === "待审核").length}</span>
             </div>
           </div>
         </div>
 
         {/* Table and Toolbar Unified Module (Ref TeacherQuestions Style) */}
         <div className="bg-white rounded border border-neutral-border overflow-hidden flex-1 flex flex-col">
-          {supportsBusinessTabs && (
-            <div className="flex items-center gap-8 px-6 border-b border-neutral-border bg-white shrink-0" role="tablist" aria-label="业务类型">
-              {(["人工智能", "网络仿真"] as const).map(tab => (
-                <button
-                  key={tab}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeBusinessTab === tab}
-                  onClick={() => {
-                    setActiveBusinessTab(tab);
-                    setActiveStatusFilter("全部");
-                    setSearchQuery("");
-                    setCurrentPage(1);
-                    setSelectedItemIds([]);
-                  }}
-                  className={cn(
-                    "relative h-12 px-1 text-[14px] font-medium border-0 bg-transparent cursor-pointer transition-colors",
-                    activeBusinessTab === tab
-                      ? "text-[#fa541c] font-semibold"
-                      : "text-neutral-500 hover:text-neutral-800"
-                  )}
-                >
-                  {tab}
-                  {activeBusinessTab === tab && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#fa541c]" />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
           {/* Integrated Toolbar Header Section */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4 border-b border-neutral-border/50 bg-white shrink-0">
             {/* Search Input bar & Filter */}
@@ -1096,6 +1064,33 @@ export default function AdminAudit() {
                   <th className="px-3 py-3.5 font-medium text-left">
                     <div className="flex items-center gap-1">类型 <ChevronDown className="w-3.5 h-3.5 text-neutral-400" /></div>
                   </th>
+                  {showsScenarioSource && (
+                    <th className="px-3 py-3.5 font-medium text-left">
+                      <Select
+                          value={scenarioFilter}
+                          onValueChange={value => {
+                            setScenarioFilter(value as "全部" | "人工智能" | "网络仿真");
+                            setCurrentPage(1);
+                            setSelectedItemIds([]);
+                          }}
+                        >
+                        <SelectTrigger
+                          aria-label={`筛选场景来源，当前：${scenarioFilter}`}
+                          className={cn("h-auto! border-0 rounded-[4px] p-0 text-[13px] font-medium cursor-pointer shadow-none gap-1.5 hover:text-[#fa541c] focus-visible:ring-2 focus-visible:ring-[#ffbb96] [&_svg]:size-3.5 [&_svg]:text-current", scenarioFilter !== "全部" && "text-[#fa541c]")}
+                        >
+                          <span>场景来源</span>
+                          {scenarioFilter !== "全部" && <span className="w-1.5 h-1.5 rounded-full bg-[#fa541c]" />}
+                        </SelectTrigger>
+                        <SelectContent align="start" alignItemWithTrigger={false} sideOffset={10} className="min-w-[160px] rounded-[6px] border border-neutral-200 bg-white p-1 shadow-lg ring-0">
+                          {(["全部", "人工智能", "网络仿真"] as const).map(source => (
+                            <SelectItem key={source} value={source} className={cn("rounded-[4px] px-3 py-2.5 pr-8 text-[13px] cursor-pointer transition-colors data-highlighted:bg-orange-50/60 data-highlighted:text-[#fa541c] focus:bg-orange-50/60 focus:text-[#fa541c]", scenarioFilter === source ? "bg-orange-50 text-[#fa541c] font-semibold" : "text-neutral-700")}>
+                              {source}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </th>
+                  )}
                   <th className="px-3 py-3.5 font-medium text-left">提交教师</th>
                   <th className="px-3 py-3.5 font-medium text-left">申请时间</th>
                   <th className="px-3 py-3.5 font-medium text-left">
@@ -1124,6 +1119,7 @@ export default function AdminAudit() {
                         {item.auditType === "公开" ? "平台公开" : (item.auditType || "平台公开")}
                       </span>
                     </td>
+                    {showsScenarioSource && <td className="px-3 py-3 text-left text-neutral-600">{getScenarioSource(item)}</td>}
                     <td className="px-3 py-3 text-left text-neutral-600">
                       <div className="text-neutral-800 font-medium">{item.creator}</div>
                     </td>
@@ -1177,7 +1173,7 @@ export default function AdminAudit() {
                 ))}
                 {filteredResources.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="p-16 text-center text-xs text-neutral-caption italic">
+                    <td colSpan={showsScenarioSource ? 7 : 6} className="p-16 text-center text-xs text-neutral-caption italic">
                       暂无符合条件的审核记录
                     </td>
                   </tr>
