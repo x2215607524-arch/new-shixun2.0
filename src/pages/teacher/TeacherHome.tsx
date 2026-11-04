@@ -575,12 +575,13 @@ export default function TeacherHome() {
                                 <img src={course.image} alt={course.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
                               </div>
                               <div>
-                                <div 
-                                  onClick={() => handleOpenCourseDetail(course)} 
-                                  className="font-medium text-neutral-800 group-hover:text-[#fa541c] transition-colors cursor-pointer"
+                                <button
+                                  type="button"
+                                  onClick={() => navigate(`/teacher/course/${course.id}`)}
+                                  className="bg-transparent border-0 p-0 text-left font-medium text-neutral-800 hover:text-[#fa541c] transition-colors cursor-pointer"
                                 >
                                   {course.name}
-                                </div>
+                                </button>
                                 <div className="text-xs text-neutral-500 font-mono mt-0.5">{course.code}</div>
                               </div>
                             </div>

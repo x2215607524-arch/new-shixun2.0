@@ -319,6 +319,7 @@ export default function TeacherProjects({
   // Search & Filter (Course Module Style)
   const [searchQuery, setSearchQuery] = useState('');
   const [projectTab, setProjectTab] = useState<'all' | '已发布' | '草稿'>('all'); // Match courseTab style
+  const [expandedTagProjectIds, setExpandedTagProjectIds] = useState<number[]>([]);
 
   // Form setup wizard active tab inside Modal
   const [activeFormTab, setActiveFormTab] = useState<'basic' | 'env'>('basic');
@@ -473,6 +474,50 @@ export default function TeacherProjects({
 
   // Mock initial dataset with real courseId assignments and default premium covers
   const [projectsList, setProjectsList] = useState<Project[]>([
+    {
+      id: 6,
+      name: '企业级智能应用全栈开发综合实战',
+      desc: '涵盖模型应用、数据分析、微服务开发和云原生部署的综合项目',
+      type: 'AI项目',
+      difficulty: '高级',
+      duration: '40',
+      gitUrl: '',
+      baseImage: 'pytorch/pytorch:2.1.0-cuda12.1',
+      resources: { cpu: '4 核', memory: '16 GB', gpu: 'NVIDIA T4' },
+      scope: { positions: [], skills: [], scenarios: [] },
+      status: '草稿',
+      range: '私有',
+      auditStatus: '未审核',
+      updateTime: '2026/11/04 11:00',
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_dev_1779333430898.png`,
+      courseId: 1,
+      tags: ['AI', 'Python', '大模型', '数据分析', '容器', '虚机', 'Java', '微服务', 'DevOps', '运维'],
+      creator: '张老师',
+      isAvailable: false,
+      environments: [{ id: 'env-6', resourcePool: '上海园区资源池', type: '容器', image: 'sh-pytorch:2.2.0-cuda12.1-gpu' }],
+    },
+    {
+      id: 5,
+      name: '基于大语言模型与多模态检索增强生成的企业级智能知识库构建及云原生高可用部署综合实战项目——从数据处理、模型微调到应用开发与运维全流程实践',
+      desc: '覆盖数据清洗、模型微调、知识检索、应用开发及云原生部署的综合实战项目',
+      type: 'AI项目',
+      difficulty: '高级',
+      duration: '32',
+      gitUrl: '',
+      baseImage: 'pytorch/pytorch:2.1.0-cuda12.1',
+      resources: { cpu: '4 核', memory: '16 GB', gpu: 'NVIDIA T4' },
+      scope: { positions: [], skills: [], scenarios: [] },
+      status: '草稿',
+      range: '私有',
+      auditStatus: '未审核',
+      updateTime: '2026/11/04 10:00',
+      image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_ai_1779333317936.png`,
+      courseId: 1,
+      tags: ['AI', '大模型', '企业级多模态大模型知识库构建与云原生高可用部署全流程综合实战', 'DevOps'],
+      creator: '张老师',
+      isAvailable: false,
+      environments: [{ id: 'env-5', resourcePool: '上海园区资源池', type: '容器', image: 'sh-pytorch:2.2.0-cuda12.1-gpu' }],
+    },
     {
       id: 1,
       name: '项目1',
@@ -876,6 +921,26 @@ export default function TeacherProjects({
     return matchesSearch && matchesStatus && matchesCourse;
   });
 
+  const openProjectPreview = (project: Project) => {
+    navigate(`/teacher/projects/${project.id}/preview`, {
+      state: {
+        project: {
+          title: project.name,
+          desc: project.desc,
+          introduction: project.introduction,
+          image: project.image,
+          tags: project.tags || [],
+          difficulty: project.difficulty,
+          status: project.status,
+          participants: '0',
+          rating: 0,
+        },
+        returnTo: location.pathname + location.search,
+        returnState: location.state,
+      },
+    });
+  };
+
   return (
     <div className={cn("flex flex-col h-full text-left", embedded ? "p-5" : "p-6")}>
       {/* Toast Notification */}
@@ -970,10 +1035,35 @@ export default function TeacherProjects({
                             referrerPolicy="no-referrer" 
                           />
                         </div>
-                        <div>
-                          <div className="font-medium text-neutral-800 group-hover:text-[#fa541c] transition-colors cursor-pointer" onClick={() => handleViewDetails(proj)}>
+                        <div className="min-w-0 w-full max-w-[360px] whitespace-normal">
+                          <button type="button" className="block w-full text-left bg-transparent border-0 p-0 font-medium text-neutral-800 hover:text-[#fa541c] transition-colors cursor-pointer break-words leading-6 line-clamp-2" title={proj.name} onClick={() => openProjectPreview(proj)}>
                             {proj.name}
-                          </div>
+                          </button>
+                          {!!proj.tags?.length && (
+                            <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                              {(expandedTagProjectIds.includes(proj.id) ? proj.tags : proj.tags.slice(0, 4)).map(tag => {
+                                const style = getTagStyle(tag);
+                                return (
+                                  <span key={tag} title={tag} className={cn("inline-flex items-center gap-1 max-w-[160px] min-w-0 px-2 py-0.5 rounded text-[11px] font-medium border", style.bg, style.text, style.border)}>
+                                    <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", style.dot)} />
+                                    <span className="truncate">{tag}</span>
+                                  </span>
+                                );
+                              })}
+                              {proj.tags.length > 4 && (
+                                <button
+                                  type="button"
+                                  aria-expanded={expandedTagProjectIds.includes(proj.id)}
+                                  aria-label={`${expandedTagProjectIds.includes(proj.id) ? '收起' : '展开'}项目标签`}
+                                  onClick={() => setExpandedTagProjectIds(previous => previous.includes(proj.id) ? previous.filter(id => id !== proj.id) : [...previous, proj.id])}
+                                  className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-medium border border-[#ffbb96]/70 bg-[#fff2e8] text-[#fa541c] hover:bg-[#ffe7d6] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#fa541c]"
+                                >
+                                  {expandedTagProjectIds.includes(proj.id) ? '收起' : `+${proj.tags.length - 4}`}
+                                  <ChevronDown className={cn("w-3 h-3 transition-transform", expandedTagProjectIds.includes(proj.id) && "rotate-180")} />
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>

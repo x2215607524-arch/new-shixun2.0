@@ -13,12 +13,13 @@ export interface ProjectData {
   difficulty: string;
   tags: string[];
   status: string;
+  introduction?: string;
 }
 
 interface ProjectDetailProps {
   project: ProjectData;
   onBack: () => void;
-  onStart: () => void;
+  onStart?: () => void;
 }
 
 export default function ProjectDetail({ project, onBack, onStart }: ProjectDetailProps) {
@@ -228,8 +229,8 @@ export default function ProjectDetail({ project, onBack, onStart }: ProjectDetai
             <div className="flex flex-col gap-6 animate-in fade-in duration-300">
               <div className="bg-white rounded-[16px] shadow-sm p-8">
                 <h2 className="text-lg font-bold text-neutral-title mb-4">项目介绍</h2>
-                <p className="text-[14px] text-neutral-body leading-relaxed mb-6">
-                  {project.desc}
+                <p className="text-[14px] text-neutral-body leading-relaxed mb-6 whitespace-pre-wrap break-words">
+                  {project.introduction || project.desc}
                 </p>
                 <div className="bg-[#fafafa] rounded-[12px] p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
@@ -394,13 +395,13 @@ export default function ProjectDetail({ project, onBack, onStart }: ProjectDetai
                 <Clock className="w-4 h-4 mr-1.5" /> 2022/12/01
               </div>
             </div>
-            <Button 
+            {onStart && <Button
               onClick={onStart}
               className="w-full h-12 bg-[#fa541c] hover:bg-[#e84a15] text-white rounded-[6px] font-bold text-[18px] transition-colors shadow-sm flex items-center justify-center gap-2 border-0 cursor-pointer"
             >
               <Play className="w-5 h-5 fill-white" />
               <span>启动项目</span>
-            </Button>
+            </Button>}
           </div>
         </div>
       </div>
