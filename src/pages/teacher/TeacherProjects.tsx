@@ -44,6 +44,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import DatasetSyncSelector, { type SelectedDataset } from '@/components/DatasetSyncSelector';
+import ProjectChecksDrawer from '@/components/ProjectChecksDrawer';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 interface EnvConfig {
@@ -320,6 +321,7 @@ export default function TeacherProjects({
   const [searchQuery, setSearchQuery] = useState('');
   const [projectTab, setProjectTab] = useState<'all' | '已发布' | '草稿'>('all'); // Match courseTab style
   const [expandedTagProjectIds, setExpandedTagProjectIds] = useState<number[]>([]);
+  const [checksProject, setChecksProject] = useState<Project | null>(null);
 
   // Form setup wizard active tab inside Modal
   const [activeFormTab, setActiveFormTab] = useState<'basic' | 'env'>('basic');
@@ -1012,13 +1014,13 @@ export default function TeacherProjects({
             <table className="w-full text-left border-collapse whitespace-nowrap text-[13px]">
               <thead>
                 <tr className="border-b border-neutral-100 bg-neutral-50/50 text-[13px] text-neutral-600 font-medium">
-                  <th className="p-4 font-medium w-[35%]">项目信息</th>
-                  <th className="p-4 font-medium">创建人</th>
-                  <th className="p-4 font-medium">环境类型</th>
-                  <th className="p-4 font-medium">是否可用</th>
-                  <th className="p-4 font-medium">课程范围</th>
-                  <th className="p-4 font-medium">审核状态</th>
-                  <th className="p-4 font-medium">操作</th>
+                  <th className="p-4 font-medium w-[40%]">项目信息</th>
+                  <th className="p-4 font-medium w-[9.6%]">创建人</th>
+                  <th className="p-4 font-medium w-[9.6%]">环境类型</th>
+                  <th className="p-4 font-medium w-[9.6%]">是否可用</th>
+                  <th className="p-4 font-medium w-[9.6%]">课程范围</th>
+                  <th className="p-4 font-medium w-[9.6%]">审核状态</th>
+                  <th className="p-4 font-medium w-[12%]">操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -1035,7 +1037,7 @@ export default function TeacherProjects({
                             referrerPolicy="no-referrer" 
                           />
                         </div>
-                        <div className="min-w-0 w-full max-w-[360px] whitespace-normal">
+                        <div className="min-w-0 w-full max-w-[440px] whitespace-normal">
                           <button type="button" className="block w-full text-left bg-transparent border-0 p-0 font-medium text-neutral-800 hover:text-[#fa541c] transition-colors cursor-pointer break-words leading-6 line-clamp-2" title={proj.name} onClick={() => openProjectPreview(proj)}>
                             {proj.name}
                           </button>
@@ -1140,7 +1142,9 @@ export default function TeacherProjects({
 
                         {/* Secondary actions dropdown */}
                         {(() => {
-                          const secondaryActions: Array<{ label: string; onClick: () => void; isDanger?: boolean }> = [];
+                          const secondaryActions: Array<{ label: string; onClick: () => void; isDanger?: boolean }> = [
+                            { label: '检查项', onClick: () => { setChecksProject(proj); setActiveDropdownId(null); } },
+                          ];
                           
                           if (proj.status === '草稿') {
                             secondaryActions.push({
@@ -2666,6 +2670,8 @@ export default function TeacherProjects({
           </div>
         </div>
       )}
+
+      <ProjectChecksDrawer project={checksProject} onClose={() => setChecksProject(null)} />
 
       {/* Action Confirmation Modal (Ref Course Module) */}
       {confirmDialog.show && (

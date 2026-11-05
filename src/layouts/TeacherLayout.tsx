@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 export default function TeacherLayout() {
   const location = useLocation();
   const [isModuleMenuOpen, setIsModuleMenuOpen] = useState(false);
+  const [activeModule, setActiveModule] = useState<'人工智能' | '网络仿真'>('人工智能');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -51,7 +52,7 @@ export default function TeacherLayout() {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-white/10 transition-colors cursor-pointer text-white font-medium" 
                 onClick={() => setIsModuleMenuOpen(!isModuleMenuOpen)}
               >
-                <span className="text-[14px]">人工智能</span>
+                <span className="text-[14px]">{activeModule}</span>
                 <ChevronDown className={cn("w-4 h-4 text-gray-400 transition-transform duration-200", isModuleMenuOpen ? "rotate-180" : "")} />
               </div>
               
@@ -59,15 +60,16 @@ export default function TeacherLayout() {
               {isModuleMenuOpen && (
                 <div className="absolute top-12 left-0 w-32 bg-[#1f1f1f] border border-gray-800 rounded-md shadow-xl py-1 z-50">
                   <div className="flex flex-col">
-                    <Link to="#" className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors" onClick={() => setIsModuleMenuOpen(false)}>
-                      安全运维
-                    </Link>
-                    <Link to="#" className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors" onClick={() => setIsModuleMenuOpen(false)}>
-                      私有云
-                    </Link>
-                    <Link to="#" className="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors" onClick={() => setIsModuleMenuOpen(false)}>
-                      公有云
-                    </Link>
+                    {(['人工智能', '网络仿真'] as const).map(module => (
+                      <button
+                        key={module}
+                        type="button"
+                        className={cn("flex items-center px-4 py-2.5 text-left text-sm border-0 cursor-pointer hover:text-white hover:bg-white/10 transition-colors", activeModule === module ? "bg-white/10 text-white" : "bg-transparent text-gray-300")}
+                        onClick={() => { setActiveModule(module); setIsModuleMenuOpen(false); }}
+                      >
+                        {module}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
@@ -152,7 +154,7 @@ export default function TeacherLayout() {
            location.pathname.startsWith("/teacher/dataset") || 
            location.pathname.includes("/experiment/")) ? "p-0" : "p-6"
         )}>
-          <Outlet />
+          <Outlet context={{ activeModule }} />
         </main>
       </div>
     </div>

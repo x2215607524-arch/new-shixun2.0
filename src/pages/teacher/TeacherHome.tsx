@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import TeacherProjects from './TeacherProjects';
 import TeacherExams from './TeacherExams';
 import TeacherDatasets from './TeacherDatasets';
@@ -12,8 +12,18 @@ import TeacherPractices from './TeacherPractices';
 import TeacherAICenter from './TeacherAICenter';
 import { Layers, Info, Bold, Italic, Type, List, AlignLeft, AlignCenter, AlignRight, Undo2, Redo2, Maximize2, ChevronDown } from 'lucide-react';
 
+const teachingModules = [
+  { id: 'course', label: '课程', icon: BookOpen, description: '管理课程内容与教学安排，构建从知识学习到实战训练的完整学习路径。' },
+  { id: 'project', label: '项目', icon: FolderKanban, description: '创建与管理实战项目，配置实验环境、源码和数据集，组织项目式教学。' },
+  { id: 'dataset', label: '数据集', icon: Database, description: '统一管理教学数据资源，维护数据集内容与共享范围，为实训提供数据支持。' },
+  { id: 'exam', label: '考试', icon: ClipboardList, description: '管理考试与场次安排，跟踪考试进展，评估学生的知识掌握与实践能力。' },
+  { id: 'practice', label: '最佳实践', icon: Layers, description: '沉淀可复用的实战案例与解决方案，将真实业务经验融入教学。' },
+  { id: 'aicenter', label: 'AI能力中心', icon: Cpu, description: '管理教学所需的 AI 能力，为智能出题、内容创作与实训应用提供支持。' },
+] as const;
+
 export default function TeacherHome() {
   const location = useLocation();
+  const { activeModule } = useOutletContext<{ activeModule: '人工智能' | '网络仿真' }>();
   const [activeSubTab, setActiveSubTab] = useState<'course' | 'project' | 'dataset' | 'exam' | 'practice' | 'aicenter'>(() => {
     const searchStr = location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : window.location.search);
     const searchParams = new URLSearchParams(searchStr);
@@ -34,8 +44,14 @@ export default function TeacherHome() {
       setActiveSubTab((location.state as any).activeSubTab);
     }
   }, [location.search, location.state]);
+  useEffect(() => {
+    if (activeModule === '网络仿真' && !['course', 'project', 'exam'].includes(activeSubTab)) {
+      setActiveSubTab('course');
+    }
+  }, [activeModule, activeSubTab]);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const [selectedCourseName, setSelectedCourseName] = useState<string | null>(null);
+  const [expandedCourseTagIds, setExpandedCourseTagIds] = useState<(string | number)[]>([]);
 
   // Initial course data setup
   const [coursesList, setCoursesList] = useState<any[]>(() => {
@@ -437,81 +453,38 @@ export default function TeacherHome() {
 
       {/* Course Management - Table Layout */}
       <div className="bg-white rounded-2xl border border-neutral-border shadow-sm overflow-hidden">
-        <div className="border-b border-neutral-border/50 px-6 pt-4 flex gap-6 overflow-x-auto no-scrollbar">
-          <button 
-            onClick={() => setActiveSubTab('course')}
-            className={cn(
-              "pb-3 font-bold border-b-2 whitespace-nowrap relative bottom-[-1px] transition-all text-[13px]",
-              activeSubTab === 'course' ? "text-[#fa541c] border-[#fa541c]" : "text-neutral-body border-transparent hover:text-[#fa541c]"
-            )}
-          >
-            课程
-          </button>
-          <button 
-            onClick={() => {
-              setSelectedCourseId(null);
-              setSelectedCourseName(null);
-              setActiveSubTab('project');
-            }}
-            className={cn(
-              "pb-3 font-bold border-b-2 whitespace-nowrap relative bottom-[-1px] transition-all text-[13px]",
-              activeSubTab === 'project' ? "text-[#fa541c] border-[#fa541c]" : "text-neutral-body border-transparent hover:text-[#fa541c]"
-            )}
-          >
-            项目
-          </button>
-          <button 
-            onClick={() => {
-              setSelectedCourseId(null);
-              setSelectedCourseName(null);
-              setActiveSubTab('dataset');
-            }}
-            className={cn(
-              "pb-3 font-bold border-b-2 whitespace-nowrap relative bottom-[-1px] transition-all text-[13px]",
-              activeSubTab === 'dataset' ? "text-[#fa541c] border-[#fa541c]" : "text-neutral-body border-transparent hover:text-[#fa541c]"
-            )}
-          >
-            数据集
-          </button>
-          <button 
-            onClick={() => {
-              setSelectedCourseId(null);
-              setSelectedCourseName(null);
-              setActiveSubTab('exam');
-            }}
-            className={cn(
-              "pb-3 font-bold border-b-2 whitespace-nowrap relative bottom-[-1px] transition-all text-[13px]",
-              activeSubTab === 'exam' ? "text-[#fa541c] border-[#fa541c]" : "text-neutral-body border-transparent hover:text-[#fa541c]"
-            )}
-          >
-            考试
-          </button>
-          <button 
-            onClick={() => {
-              setSelectedCourseId(null);
-              setSelectedCourseName(null);
-              setActiveSubTab('practice');
-            }}
-            className={cn(
-              "pb-3 font-bold border-b-2 whitespace-nowrap relative bottom-[-1px] transition-all text-[13px]",
-              activeSubTab === 'practice' ? "text-[#fa541c] border-[#fa541c]" : "text-neutral-body border-transparent hover:text-[#fa541c]"
-            )}
-          >
-            最佳实践
-          </button>
-          <button 
-            onClick={() => {
-              setSelectedCourseId(null);
-              setSelectedCourseName(null);
-              setActiveSubTab('aicenter');
-            }}
-            className={cn(
-              "pb-3 font-bold border-b-2 whitespace-nowrap relative bottom-[-1px] transition-all text-[13px]",
-              activeSubTab === 'aicenter' ? "text-[#fa541c] border-[#fa541c]" : "text-neutral-body border-transparent hover:text-[#fa541c]"
-            )}
-          >
-            ai能力中心
-          </button>
+        <div className="border-b border-neutral-100 px-5 pt-2 sm:px-6">
+          <nav aria-label="教学模块" className="overflow-x-auto no-scrollbar">
+            <div className="inline-flex min-w-max items-center gap-2 sm:gap-5">
+              {teachingModules.filter(module => activeModule !== '网络仿真' || ['course', 'project', 'exam'].includes(module.id)).map(module => {
+                const isActive = activeSubTab === module.id;
+                return (
+                  <button
+                    key={module.id}
+                    type="button"
+                    aria-pressed={isActive}
+                    onClick={() => {
+                      if (module.id !== 'course') {
+                        setSelectedCourseId(null);
+                        setSelectedCourseName(null);
+                      }
+                      setActiveSubTab(module.id);
+                    }}
+                    className={cn(
+                      "relative inline-flex items-center justify-center gap-2 whitespace-nowrap border-0 bg-transparent px-3 py-4 text-[14px] leading-5 transition-colors duration-200 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#fa541c] group/tab",
+                      isActive
+                        ? "text-[#fa541c] font-semibold"
+                        : "text-neutral-500 font-medium hover:text-neutral-800"
+                    )}
+                  >
+                    <module.icon className="h-4 w-4 shrink-0" strokeWidth={isActive ? 2 : 1.7} />
+                    {module.label}
+                    <span aria-hidden="true" className={cn("absolute bottom-0 left-1/2 h-[3px] -translate-x-1/2 rounded-full transition-all duration-200", isActive ? "w-7 bg-[#fa541c]" : "w-0 bg-neutral-200 group-hover/tab:w-5")} />
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
         </div>
         {activeSubTab === 'course' ? (
           <div className="flex flex-col h-full text-left p-5">
@@ -558,23 +531,26 @@ export default function TeacherHome() {
                   <table className="w-full text-left border-collapse whitespace-nowrap text-[13px]">
                     <thead>
                       <tr className="border-b border-neutral-100 bg-neutral-50/50 text-[13px] text-neutral-600 font-medium">
-                        <th className="p-4 font-medium w-[30%]">课程信息</th>
-                        <th className="p-4 font-medium w-[14%]">授课教师</th>
-                        <th className="p-4 font-medium w-[14%]">课程范围</th>
-                        <th className="p-4 font-medium w-[14%]">状态</th>
-                        <th className="p-4 font-medium w-[14%]">审核状态</th>
-                        <th className="p-4 font-medium w-[14%]">操作</th>
+                        <th className="p-4 font-medium w-[40%]">课程信息</th>
+                        <th className="p-4 font-medium w-[12%]">授课教师</th>
+                        <th className="p-4 font-medium w-[12%]">课程范围</th>
+                        <th className="p-4 font-medium w-[12%]">状态</th>
+                        <th className="p-4 font-medium w-[12%]">审核状态</th>
+                        <th className="p-4 font-medium w-[12%]">操作</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredCourses.map((course, index) => (
+                      {filteredCourses.map((course, index) => {
+                        const tags: string[] = (course.tags || '').split(/[,，]/).map((tag: string) => tag.trim()).filter(Boolean);
+                        const tagsExpanded = expandedCourseTagIds.includes(course.id);
+                        return (
                         <tr key={course.id} className={cn("border-b border-neutral-100 hover:bg-neutral-50/30 transition-colors group text-[13px]", index === filteredCourses.length - 1 && "border-b-0")}>
                           <td className="p-4">
                             <div className="flex items-center gap-4">
                               <div className="w-20 h-14 rounded-md overflow-hidden flex-shrink-0 border border-neutral-200/60 shadow-xs relative bg-neutral-100">
                                 <img src={course.image} alt={course.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
                               </div>
-                              <div>
+                              <div className="min-w-0 max-w-[440px]">
                                 <button
                                   type="button"
                                   onClick={() => navigate(`/teacher/course/${course.id}`)}
@@ -583,6 +559,22 @@ export default function TeacherHome() {
                                   {course.name}
                                 </button>
                                 <div className="text-xs text-neutral-500 font-mono mt-0.5">{course.code}</div>
+                                {tags.length > 0 && (
+                                  <div className="flex flex-wrap items-center gap-1.5 mt-2 whitespace-normal">
+                                    {(tagsExpanded ? tags : tags.slice(0, 4)).map((tag, tagIndex) => (
+                                      <span key={`${tag}-${tagIndex}`} title={tag} className="inline-flex items-center gap-1 max-w-[160px] min-w-0 px-2 py-0.5 rounded text-[11px] font-medium border border-neutral-200 bg-neutral-50 text-neutral-600">
+                                        <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-neutral-400" />
+                                        <span className="truncate">{tag}</span>
+                                      </span>
+                                    ))}
+                                    {tags.length > 4 && (
+                                      <button type="button" aria-expanded={tagsExpanded} aria-label={`${tagsExpanded ? '收起' : '展开'}课程标签`} onClick={() => setExpandedCourseTagIds(previous => tagsExpanded ? previous.filter(id => id !== course.id) : [...previous, course.id])} className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-medium border border-[#ffbb96]/70 bg-[#fff2e8] text-[#fa541c] hover:bg-[#ffe7d6] transition-colors cursor-pointer">
+                                        {tagsExpanded ? '收起' : `+${tags.length - 4}`}
+                                        <ChevronDown className={cn("w-3 h-3 transition-transform", tagsExpanded && "rotate-180")} />
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </td>
@@ -768,7 +760,7 @@ export default function TeacherHome() {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                      );})}
                     </tbody>
                   </table>
                   

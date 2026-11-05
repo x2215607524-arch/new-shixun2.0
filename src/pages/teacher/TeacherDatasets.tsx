@@ -481,13 +481,13 @@ export default function TeacherDatasets({
               <table className="w-full text-left border-collapse whitespace-nowrap text-[13px]">
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50/50 text-[13px] text-neutral-600 font-medium">
-                    <th className="p-4 font-medium w-[28%]">数据集信息</th>
-                    <th className="p-4 font-medium">创建人</th>
-                    <th className="p-4 font-medium">类型</th>
-                    <th className="p-4 font-medium">收藏数量</th>
-                    <th className="p-4 font-medium">被引用次数</th>
-                    <th className="p-4 font-medium">更新时间</th>
-                    <th className="p-4 font-medium">操作</th>
+                    <th className="p-4 font-medium w-[40%]">数据集信息</th>
+                    <th className="p-4 font-medium w-[9%]">创建人</th>
+                    <th className="p-4 font-medium w-[7%]">类型</th>
+                    <th className="p-4 font-medium w-[9%]">收藏数量</th>
+                    <th className="p-4 font-medium w-[10%]">被引用次数</th>
+                    <th className="p-4 font-medium w-[13%]">更新时间</th>
+                    <th className="p-4 font-medium w-[12%]">操作</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -507,15 +507,16 @@ export default function TeacherDatasets({
                               referrerPolicy="no-referrer" 
                             />
                           </div>
-                          <div>
+                          <div className="min-w-0 w-full max-w-[440px] whitespace-normal">
                             <div 
                               onClick={() => handleOpenDetail(ds)} 
-                              className="font-medium text-neutral-800 group-hover:text-[#fa541c] transition-colors cursor-pointer"
+                              title={ds.name}
+                              className="font-medium text-neutral-800 group-hover:text-[#fa541c] transition-colors cursor-pointer break-words leading-6 line-clamp-2"
                             >
                               {ds.name}
                             </div>
                             {ds.subtitle && (
-                              <div className="text-xs text-neutral-500 font-mono mt-0.5">{ds.subtitle}</div>
+                              <div title={ds.subtitle} className="text-xs text-neutral-500 font-mono mt-0.5 truncate">{ds.subtitle}</div>
                             )}
                             {ds.tags && ds.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1.5 mt-1.5">

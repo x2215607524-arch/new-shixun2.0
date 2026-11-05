@@ -1027,14 +1027,14 @@ export default function TeacherExams({ embedded = false }) {
             <table className="w-full text-left border-collapse whitespace-nowrap text-[13px]">
             <thead>
               <tr className="border-b border-neutral-100 bg-neutral-50/50 text-[13px] text-neutral-600 font-medium">
-                <th className="p-4 font-medium w-12 text-center"></th>
-                <th className="p-4 font-medium text-left w-[240px]">考试名称</th>
-                <th className="p-4 font-medium text-left w-[120px]">考试状态</th>
-                <th className="p-4 font-medium text-left w-24">考试场次</th>
-                <th className="p-4 font-medium text-left w-24">报名人数</th>
-                <th className="p-4 font-medium text-left w-28">创建人</th>
-                <th className="p-4 font-medium text-left w-48">创建时间</th>
-                <th className="p-4 font-medium text-left w-[180px]">操作</th>
+                <th className="p-4 font-medium w-[4%] text-center"></th>
+                <th className="p-4 font-medium text-left w-[36%]">考试名称</th>
+                <th className="p-4 font-medium text-left w-[8%]">考试状态</th>
+                <th className="p-4 font-medium text-left w-[8%]">考试场次</th>
+                <th className="p-4 font-medium text-left w-[8%]">报名人数</th>
+                <th className="p-4 font-medium text-left w-[9%]">创建人</th>
+                <th className="p-4 font-medium text-left w-[15%]">创建时间</th>
+                <th className="p-4 font-medium text-left w-[12%]">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -1054,7 +1054,7 @@ export default function TeacherExams({ embedded = false }) {
                       </button>
                     </td>
                     <td className="p-4 text-left">
-                      <div className="text-neutral-800 font-medium max-w-[320px] truncate" title={exam.name}>
+                      <div className="text-neutral-800 font-medium max-w-[440px] truncate" title={exam.name}>
                         {exam.name}
                       </div>
                     </td>

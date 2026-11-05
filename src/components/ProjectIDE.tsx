@@ -3,13 +3,17 @@ import { ChevronRight, Star, Plus, Play, Square, RotateCcw, Layers, Cpu, Databas
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import ProjectWorkspaceChecks from '@/components/ProjectWorkspaceChecks';
+import { CheckSquare } from 'lucide-react';
 
 interface ProjectIDEProps {
   projectTitle?: string;
+  showAIAssistant?: boolean;
+  showChecks?: boolean;
   onBack: () => void;
 }
 
-export default function ProjectIDE({ onBack, projectTitle }: ProjectIDEProps) {
+export default function ProjectIDE({ onBack, projectTitle, showAIAssistant = true, showChecks = false }: ProjectIDEProps) {
   const [activeTab, setActiveTab] = useState('file'); // file, dataset, toc
   const [datasetTab, setDatasetTab] = useState('public');
   const [importedDatasets, setImportedDatasets] = useState<string[]>([]);
@@ -100,10 +104,15 @@ export default function ProjectIDE({ onBack, projectTitle }: ProjectIDEProps) {
             <List className="w-5 h-5" />
             <span className="text-[10px]">目录</span>
           </div>
+          {showChecks && <button type="button" aria-pressed={activeTab === 'checks'} onClick={() => setActiveTab('checks')} className={cn("flex flex-col items-center gap-1 cursor-pointer w-full bg-transparent border-0 p-0", activeTab === 'checks' ? "text-[#fa541c]" : "hover:text-neutral-title")}>
+            <CheckSquare className="w-5 h-5" />
+            <span className="text-[10px]">检查项</span>
+          </button>}
         </div>
 
         {/* Left Sidebar - Dynamic Content */}
         <div className="w-72 border-r border-neutral-border flex flex-col bg-white">
+          {showChecks && <div className={cn('h-full min-h-0', activeTab !== 'checks' && 'hidden')}><ProjectWorkspaceChecks /></div>}
           {activeTab === 'file' && (
             <div className="flex flex-col h-full bg-[#fafafa]">
               <div className="p-2 text-xs font-bold text-neutral-caption uppercase bg-neutral-100 border-b border-neutral-border">
@@ -275,7 +284,7 @@ export default function ProjectIDE({ onBack, projectTitle }: ProjectIDEProps) {
             )}
             
             {/* Bottom AI Toolbar */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-neutral-border px-4 py-3 rounded-full z-10">
+            {showAIAssistant && <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-white shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-neutral-border px-4 py-3 rounded-full z-10">
               <div className="flex items-center gap-2 text-neutral-title font-bold text-[14px] px-2 py-1">
                  <Bot className="w-5 h-5 text-[#fa541c]" /> AI 项目助手
               </div>
@@ -286,7 +295,7 @@ export default function ProjectIDE({ onBack, projectTitle }: ProjectIDEProps) {
               <Button variant="outline" size="sm" className="h-8 rounded-full text-[13px] text-neutral-title border-neutral-300 hover:border-[#1890ff] hover:text-[#1890ff] hover:bg-[#e6f4ff] px-4 shadow-sm flex items-center gap-1.5 transition-all">
                 <MessageSquare className="w-3.5 h-3.5" /> AI 代码解释
               </Button>
-            </div>
+            </div>}
           </div>
         </div>
 

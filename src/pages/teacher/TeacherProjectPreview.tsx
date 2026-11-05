@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProjectDetail, { type ProjectData } from '@/components/ProjectDetail';
+import ProjectIDE from '@/components/ProjectIDE';
 
 export default function TeacherProjectPreview() {
   const location = useLocation();
@@ -17,7 +18,13 @@ export default function TeacherProjectPreview() {
     </div>;
   }
 
+  if (new URLSearchParams(location.search).get('view') === 'workspace') {
+    return <ProjectIDE projectTitle={state.project.title} showAIAssistant={false} showChecks onBack={() => navigate(-1)} />;
+  }
+
   return <div className="flex-1 bg-[#f5f5f5]">
-    <ProjectDetail project={state.project} onBack={onBack} />
+    <ProjectDetail project={state.project} onBack={onBack} onStart={() => {
+      navigate(`${location.pathname}?view=workspace`, { state });
+    }} />
   </div>;
 }
