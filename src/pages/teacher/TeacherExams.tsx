@@ -105,7 +105,7 @@ const mockPreviewQuestions: Record<'单选题' | '多选题' | '简答题' | '�
   ]
 };
 
-export default function TeacherExams({ embedded = false }) {
+export default function TeacherExams({ embedded = false, scene = '人工智能' }: { embedded?: boolean; scene?: '人工智能' | '网络仿真' }) {
   const navigate = useNavigate();
   // Exams mock data
   const [exams, setExams] = useState([
@@ -230,7 +230,16 @@ export default function TeacherExams({ embedded = false }) {
         }
       ]
     }
-  ]);
+  ].flatMap(exam => [
+    { ...exam, scene: '人工智能' },
+    {
+      ...exam, id: exam.id + 10000, scene: '网络仿真',
+      name: exam.id === 1 ? '网络拓扑与路由交换综合考试' : '网络故障诊断实操考试',
+      sessions: exam.sessions.map((session, index) => ({ ...session, id: session.id + 10000,
+        name: `网络仿真${session.type} · 第${index + 1}场`, location: '网络仿真实训室' })),
+    },
+  ]));
+  const sceneExams = exams.filter(exam => exam.scene === scene);
 
   const [examTab, setExamTab] = useState('all'); // all, active, draft
   const [expandedRow, setExpandedRow] = useState<number | null>(2);
@@ -536,6 +545,7 @@ export default function TeacherExams({ embedded = false }) {
       setExams([{
         id: Date.now(),
         name: examName || '未命名考试',
+        scene,
         status: '草稿',
         sessionsCount: 0,
         enrolled: 0,
@@ -1041,7 +1051,7 @@ export default function TeacherExams({ embedded = false }) {
               </tr>
             </thead>
             <tbody>
-              {exams.map(exam => (
+              {sceneExams.map(exam => (
                 <React.Fragment key={exam.id}>
                   {/* Parent Row */}
                   <tr className={cn(
@@ -1254,7 +1264,7 @@ export default function TeacherExams({ embedded = false }) {
 
       {/* Standalone Bottom Pagination Bar - Matching Dataset Module */}
       <div className="py-2 px-1 flex items-center justify-end gap-3 text-xs text-neutral-500 shrink-0 select-none">
-        <span>共 {exams.length} 条</span>
+        <span>共 {sceneExams.length} 条</span>
         <div className="flex items-center gap-1">
           <button className="w-7 h-7 border border-neutral-200 rounded flex items-center justify-center hover:bg-neutral-50 cursor-pointer bg-white text-neutral-600">
             &lt;

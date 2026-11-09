@@ -56,10 +56,27 @@ export default function TeacherHome() {
 
   // Initial course data setup
   const [coursesList, setCoursesList] = useState<any[]>(() => {
+    const prepare = (list: any[]) => {
+      const needsMigration = list.every(course => !course.scene);
+      const result = needsMigration ? [
+        ...list.map(course => ({ ...course, scene: '人工智能' })),
+        ...['网络基础与拓扑搭建', '企业园区路由交换实训', '网络安全与故障排查'].map((name, index) => ({
+          id: 10001 + index, name, code: `NET-${101 + index}-2026`, scene: '网络仿真',
+          desc: '通过虚机网络环境学习拓扑设计、设备配置与网络连通性验证。',
+          teacher: '张老师', ta: '-', scope: ['私有', '租户', '平台'][index],
+          status: index === 0 ? '草稿' : '已发布', auditStatus: index === 0 ? '待审核' : '已通过',
+          image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_cloud_1779333396845.png`,
+          state: 'active', major: '网络仿真', tags: '网络仿真, 路由交换, 实践课',
+        })),
+      ] : list;
+      localStorage.setItem('zhiyun_courses', JSON.stringify(result));
+      return result;
+    };
     const saved = localStorage.getItem('zhiyun_courses');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return prepare(parsed);
       } catch (e) {
         console.error(e);
       }
@@ -111,8 +128,7 @@ export default function TeacherHome() {
         tags: '选修'
       }
     ];
-    localStorage.setItem('zhiyun_courses', JSON.stringify(defaultList));
-    return defaultList;
+    return prepare(defaultList);
   });
 
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
@@ -226,7 +242,7 @@ export default function TeacherHome() {
       ...course,
       id: Date.now(),
       name: `${course.name} (复制)`,
-      code: `AI-${Math.floor(100 + Math.random() * 900)}-2026`,
+      code: `${activeModule === '网络仿真' ? 'NET' : 'AI'}-${Math.floor(100 + Math.random() * 900)}-2026`,
       scope: '私有',
       status: '草稿',
       auditStatus: '待审核',
@@ -259,7 +275,8 @@ export default function TeacherHome() {
       const newCourse = {
         id: Date.now(),
         name: courseFormName,
-        code: `AI-${Math.floor(100 + Math.random() * 900)}-2026`,
+        scene: activeModule,
+        code: `${activeModule === '网络仿真' ? 'NET' : 'AI'}-${Math.floor(100 + Math.random() * 900)}-2026`,
         desc: courseFormDesc,
         teacher: '张老师',
         ta: '-',
@@ -268,7 +285,7 @@ export default function TeacherHome() {
         auditStatus: '待审核',
         image: selectedCover || defaultCovers[0],
         state: 'active',
-        major: courseFormMajor || '人工智能',
+        major: courseFormMajor || activeModule,
         tags: courseFormTags.join(', ') || '必修, 核心课程',
         introduction: courseFormIntroduction
       };
@@ -345,7 +362,7 @@ export default function TeacherHome() {
 
   const filteredCourses = coursesList.filter(c => {
     const query = courseSearchQuery.toLowerCase();
-    return c.name.toLowerCase().includes(query) || c.code.toLowerCase().includes(query);
+    return (c.scene || '人工智能') === activeModule && (c.name.toLowerCase().includes(query) || c.code.toLowerCase().includes(query));
   });
 
   return (
@@ -465,6 +482,12 @@ export default function TeacherHome() {
                         setSelectedCourseName(null);
                       }
                       setActiveSubTab(module.id);
+                      const params = new URLSearchParams(location.search);
+                      params.set('tab', module.id);
+                      navigate(`${location.pathname}?${params}`, {
+                        replace: true,
+                        state: { ...location.state, activeSubTab: module.id },
+                      });
                     }}
                     className={cn(
                       "relative inline-flex items-center justify-center gap-2 whitespace-nowrap border-0 bg-transparent px-3 py-4 text-[14px] leading-5 transition-colors duration-200 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#fa541c] group/tab",
@@ -813,7 +836,7 @@ export default function TeacherHome() {
         ) : activeSubTab === 'aicenter' ? (
           <TeacherAICenter embedded={true} />
         ) : (
-          <TeacherExams embedded={true} />
+          <TeacherExams embedded={true} scene={activeModule} />
         )}
       </div>
 

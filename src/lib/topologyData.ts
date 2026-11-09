@@ -3,8 +3,8 @@ import { uniqueDeviceName } from './topologyGeometry';
 export type Kind = 'vm' | 'switch' | 'bridge' | 'text' | 'rectangle' | 'line' | 'dashed';
 export const NODE_STATUSES = ['未初始化', '关机', '启动异常', '正在运行', '排队初始化', '正在初始化', '排队删除'] as const;
 export type NodeStatus = typeof NODE_STATUSES[number];
-export type Device = { id: string; name: string; kind: Kind; x: number; y: number; bridge: string; status: NodeStatus; image: string };
-export type Link = { id: string; from: string; to: string };
+export type Device = { id: string; name: string; kind: Kind; x: number; y: number; bridge: string; status: NodeStatus; image: string; ports?: string[] };
+export type Link = { id: string; from: string; to: string; fromPort?: string; toPort?: string };
 export type Topology = { devices: Device[]; links: Link[]; version?: number };
 export const STATUS_STYLE: Record<NodeStatus, { dot: string; badge: string }> = {
   未初始化: { dot: 'bg-neutral-400', badge: 'text-neutral-500 bg-neutral-100' },
@@ -15,6 +15,29 @@ export const STATUS_STYLE: Record<NodeStatus, { dot: string; badge: string }> = 
   正在初始化: { dot: 'bg-blue-500 animate-pulse', badge: 'text-blue-600 bg-blue-50' },
   排队删除: { dot: 'bg-rose-500', badge: 'text-rose-600 bg-rose-50' },
 };
+
+export function portsOf(device: Device): string[] {
+  return device.ports || Array.from({ length: device.kind === 'vm' ? 4 : device.kind === 'switch' ? 8 : device.kind === 'bridge' ? 1 : 0 }, (_, index) => `eth${index}`);
+}
+export function freePorts(topology: Topology, id: string): string[] {
+  const device = topology.devices.find(item => item.id === id);
+  if (!device) return [];
+  const used = new Set(topology.links.flatMap(link => [link.from === id ? link.fromPort : undefined, link.to === id ? link.toPort : undefined]));
+  return portsOf(device).filter(port => !used.has(port));
+}
+export function connectPorts(topology: Topology, link: Link): Topology {
+  if (link.from === link.to || !link.fromPort || !link.toPort || !freePorts(topology, link.from).includes(link.fromPort) || !freePorts(topology, link.to).includes(link.toPort)) return topology;
+  return { ...topology, links: [...topology.links, link] };
+}
+export function assignLegacyPorts(topology: Topology): Topology {
+  let result = { ...topology, links: [] as Link[] };
+  for (const link of topology.links) {
+    const fromPort = link.fromPort || freePorts(result, link.from)[0];
+    const toPort = link.toPort || freePorts(result, link.to)[0];
+    result = connectPorts(result, { ...link, fromPort, toPort });
+  }
+  return result;
+}
 
 export function withStatusExamples(topology: Topology): Topology {
   const devices = [...topology.devices];
@@ -35,7 +58,7 @@ export function initialTopology(): Topology {
     { id: 'l1', from: topology.devices[0].id, to: 'sw1' },
     { id: 'l2', from: topology.devices[3].id, to: 'sw1' },
   ];
-  return topology;
+  return assignLegacyPorts(topology);
 }
 
 export function readTopology(value: unknown): Topology | null {
@@ -53,5 +76,5 @@ export function readTopology(value: unknown): Topology | null {
     const name = names.has(item.name) ? uniqueDeviceName(item.name, names) : item.name;
     names.add(name); ids.add(item.id); devices.push({ ...item, name, status });
   }
-  return { devices, version: saved.version, links: saved.links.filter(link => link && typeof link.id === 'string' && ids.has(link.from) && ids.has(link.to)) };
+  return assignLegacyPorts({ devices, version: saved.version, links: saved.links.filter(link => link && typeof link.id === 'string' && ids.has(link.from) && ids.has(link.to)) });
 }

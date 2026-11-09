@@ -7,6 +7,10 @@ export default function TeacherLayout() {
   const location = useLocation();
   const [isModuleMenuOpen, setIsModuleMenuOpen] = useState(false);
   const [activeModule, setActiveModule] = useState<'人工智能' | '网络仿真'>('人工智能');
+  useEffect(() => {
+    const scene = location.state?.scene;
+    if (scene === '人工智能' || scene === '网络仿真') setActiveModule(scene);
+  }, [location.state?.scene]);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);

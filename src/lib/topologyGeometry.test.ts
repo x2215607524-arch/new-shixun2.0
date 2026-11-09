@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { snappedMovement, uniqueDeviceName, zoomAtPoint } from './topologyGeometry';
-import { initialTopology, NODE_STATUSES, readTopology } from './topologyData';
+import { connectPorts, freePorts, initialTopology, NODE_STATUSES, readTopology, type Topology } from './topologyData';
 
 test('zoom keeps the world point under the cursor fixed and respects limits', () => {
   const before = { x: -100, y: 50, zoom: .8 };
@@ -70,4 +70,26 @@ test('legacy data migration normalizes statuses and repairs duplicate names', ()
   assert.equal(topology.devices[1].status, '正在运行');
   assert.notEqual(topology.devices[0].name, topology.devices[1].name);
   assert.equal(topology.links.length, 0);
+});
+
+test('parallel connections use distinct ports and enforce both endpoint capacities', () => {
+  const devices = initialTopology().devices.slice(0, 2).map((node, index) => ({ ...node, id: String(index), ports: ['eth0', 'eth1'] }));
+  let topology: Topology = { devices, links: [] };
+  topology = connectPorts(topology, { id: 'one', from: '0', to: '1', fromPort: 'eth0', toPort: 'eth0' });
+  assert.equal(connectPorts(topology, { id: 'busy', from: '1', to: '0', fromPort: 'eth1', toPort: 'eth0' }), topology);
+  topology = connectPorts(topology, { id: 'two', from: '1', to: '0', fromPort: 'eth1', toPort: 'eth1' });
+  assert.equal(topology.links.length, 2);
+  assert.deepEqual(freePorts(topology, '0'), []);
+  assert.equal(connectPorts(topology, { id: 'invalid', from: '0', to: '1', fromPort: 'eth2', toPort: 'eth2' }), topology);
+  topology = { ...topology, links: topology.links.filter(link => link.id !== 'one') };
+  assert.deepEqual(freePorts(topology, '0'), ['eth0']);
+  assert.equal(connectPorts(topology, { id: 'reuse', from: '0', to: '1', fromPort: 'eth0', toPort: 'eth0' }).links.length, 2);
+});
+
+test('saved parallel links retain ports and older links acquire distinct ports', () => {
+  const devices = initialTopology().devices.slice(0, 2);
+  const saved = { devices, links: [0, 1].map(index => ({ id: String(index), from: devices[0].id, to: devices[1].id })) };
+  const migrated = readTopology(saved)!;
+  assert.deepEqual(migrated.links.map(link => link.fromPort), ['eth0', 'eth1']);
+  assert.deepEqual(readTopology(JSON.parse(JSON.stringify(migrated)))?.links, migrated.links);
 });

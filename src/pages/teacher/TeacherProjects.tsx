@@ -1659,6 +1659,7 @@ export default function TeacherProjects({
                     />
                   </div>
 
+                  {!(scene === '网络仿真' && modalMode === 'create') && <>
                   {/* 2. 选择环境类型 */}
                   <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                     <label className="text-[13px] font-bold text-[#262626] text-right">
@@ -2471,6 +2472,7 @@ export default function TeacherProjects({
                     <span className="text-[13px] font-bold text-[#262626] sm:text-right pt-1">数据集选择</span>
                     <DatasetSyncSelector value={formDatasets} onChange={setFormDatasets} disabled={modalMode === 'view'} />
                   </div>}
+                  </>}
                 </div>
               )}
 
