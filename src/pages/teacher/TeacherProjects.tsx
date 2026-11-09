@@ -1,3 +1,4 @@
+import { useDismissActionMenu } from '@/lib/useDismissActionMenu';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
@@ -49,6 +50,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 interface EnvConfig {
   id: string;
+  name?: string;
+  username?: string;
+  password?: string;
+  demoCredentials?: boolean;
   resourcePool: string;
   type: '容器' | '虚机';
   // 容器字段
@@ -81,6 +86,7 @@ interface EnvConfig {
 }
 
 interface Project {
+  scene?: '人工智能' | '网络仿真';
   datasets?: SelectedDataset[];
   id: number;
   name: string;
@@ -280,6 +286,7 @@ export function CustomSelect({
 }
 
 interface TeacherProjectsProps {
+  scene?: '人工智能' | '网络仿真';
   embedded?: boolean;
   defaultCourseId?: number | null;
   defaultCourseName?: string | null;
@@ -287,6 +294,7 @@ interface TeacherProjectsProps {
 }
 
 export default function TeacherProjects({
+  scene = '人工智能',
   embedded = false,
   defaultCourseId = null,
   defaultCourseName = null,
@@ -296,8 +304,8 @@ export default function TeacherProjects({
   const location = useLocation();
 
   // Route states / Props fallback
-  const incomingCourseId = defaultCourseId || location.state?.courseId;
-  const incomingCourseName = defaultCourseName || location.state?.courseName;
+  const incomingCourseId = scene === '网络仿真' ? null : defaultCourseId || location.state?.courseId;
+  const incomingCourseName = scene === '网络仿真' ? null : defaultCourseName || location.state?.courseName;
 
   // Default covers for premium look
   const defaultCovers = [
@@ -357,6 +365,7 @@ export default function TeacherProjects({
   const currentEnvType = formEnvironments[0]?.type || '容器';
 
   const handleChangeEnvType = (newType: '容器' | '虚机') => {
+    if (scene === '网络仿真' && newType !== '虚机') return;
     const updated = formEnvironments.map(env => {
       if (env.type === newType) return env;
       if (newType === '容器') {
@@ -413,6 +422,7 @@ export default function TeacherProjects({
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [projectToApply, setProjectToApply] = useState<Project | null>(null);
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
+  useDismissActionMenu(setActiveDropdownId);
   const [applyTargetAudience, setApplyTargetAudience] = useState('');
   const [applyUsageSuggestion, setApplyUsageSuggestion] = useState('');
   const [applyRange, setApplyRange] = useState<'租户' | '平台'>('租户');
@@ -572,9 +582,23 @@ export default function TeacherProjects({
       environments: [
         {
           id: 'env-2',
+          name: '开发虚机',
+          username: 'ubuntu',
+          password: 'Demo-Dev-2026!',
+          demoCredentials: true,
           resourcePool: '天翼云资源池1',
           type: '虚机',
           image: 'ctyun-ubuntu-22.04-server-x86_64.qcow2',
+        },
+        {
+          id: 'env-2-test',
+          name: '测试虚机',
+          resourcePool: '天翼云资源池1',
+          type: '虚机',
+          image: 'ctyun-ubuntu-22.04-server-x86_64.qcow2',
+          username: 'ubuntu',
+          password: 'Demo-Test-2026!',
+          demoCredentials: true,
         }
       ]
     },
@@ -635,7 +659,15 @@ export default function TeacherProjects({
           image: 'ctyun-ubuntu-22.04-server-x86_64.qcow2',
         }
       ]
-    }
+    },
+    ...['企业园区网络规划与部署', '多分支广域网互联综合实训', '数据中心网络高可用实践'].map((name, index): Project => ({
+      id: 101 + index, name, scene: '网络仿真', desc: '基于虚机设备完成网络拓扑搭建、路由配置与连通性验证',
+      type: '运维项目', difficulty: '中级', duration: '8', gitUrl: '', baseImage: 'Ubuntu 22.04',
+      resources: { cpu: '2 核', memory: '4 GB', gpu: '无' }, scope: { positions: [], skills: ['网络仿真'], scenarios: [] },
+      status: '草稿', range: (['私有', '租户', '平台'] as const)[index], creator: '张老师', isAvailable: true,
+      updateTime: '2026/11/06 10:00', image: `${import.meta.env.BASE_URL}images/covers/microsoft_tech_cloud_1779333396845.png`,
+      tags: ['网络仿真', '虚机', '路由交换'], environments: [{ id: `net-${index}`, type: '虚机', resourcePool: '天翼云资源池1', image: 'Ubuntu 22.04' }],
+    }))
   ]);
 
   const showToast = (msg: string) => {
@@ -666,12 +698,12 @@ export default function TeacherProjects({
       {
         id: 'env-' + Date.now(),
         resourcePool: '天翼云资源池1',
-        type: '容器',
+        type: scene === '网络仿真' ? '虚机' : '容器',
         sourceFile: '',
         cpuCores: '2',
         memoryGB: '4',
         gpu: { power: '无', vram: '0', count: '0' },
-        image: CONTAINER_IMAGES['天翼云资源池1'][0],
+        image: scene === '网络仿真' ? VM_IMAGES['天翼云资源池1'][0] : CONTAINER_IMAGES['天翼云资源池1'][0],
         envVariables: [],
         startCommand: 'python main.py'
       }
@@ -791,6 +823,7 @@ export default function TeacherProjects({
       courseId: currentProjectId ? projectsList.find(p => p.id === currentProjectId)?.courseId : (incomingCourseId || undefined),
       tags: formTags,
       environments: formEnvironments,
+      scene,
       range: finalRange,
       auditStatus: finalAuditStatus,
       introduction: formIntroduction
@@ -867,6 +900,7 @@ export default function TeacherProjects({
   };
 
   const handleViewDetails = (proj: Project) => {
+    if (proj.range !== '私有') return;
     setFormDatasets((proj.datasets || []).map(dataset => ({ ...dataset })));
     setCurrentProjectId(proj.id);
     setFormName(proj.name);
@@ -920,11 +954,12 @@ export default function TeacherProjects({
                           p.scope.skills.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesStatus = projectTab === 'all' || p.status === projectTab;
     const matchesCourse = !incomingCourseId || p.courseId === incomingCourseId;
-    return matchesSearch && matchesStatus && matchesCourse;
+    return matchesSearch && matchesStatus && (scene === '网络仿真' || matchesCourse) && (p.scene || '人工智能') === scene;
   });
 
-  const openProjectPreview = (project: Project) => {
-    navigate(`/teacher/projects/${project.id}/preview`, {
+  const openProjectPreview = (project: Project, workspace = false) => {
+    if (workspace && project.range !== '私有') return;
+    navigate(`/teacher/projects/${project.id}/preview${workspace ? '?view=workspace' : ''}`, {
       state: {
         project: {
           title: project.name,
@@ -937,6 +972,11 @@ export default function TeacherProjects({
           participants: '0',
           rating: 0,
         },
+        environment: project.environments?.[0],
+        environments: project.environments,
+        scene: project.scene || '人工智能',
+        projectId: project.id,
+        canEdit: project.range === '私有',
         returnTo: location.pathname + location.search,
         returnState: location.state,
       },
@@ -1126,10 +1166,11 @@ export default function TeacherProjects({
 
                     {/* 7. 操作 */}
                     <td className="p-4">
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                         <button 
                           onClick={() => handleViewDetails(proj)} 
-                          className="text-[#fa541c] hover:text-[#e84a15] transition-colors bg-transparent border-0 cursor-pointer font-medium text-[13px] rounded-[4px]"
+                          disabled={proj.range !== '私有'}
+                          className="text-[#fa541c] hover:text-[#e84a15] disabled:text-[#ffbb96] disabled:cursor-not-allowed transition-colors bg-transparent border-0 cursor-pointer font-medium text-[13px] rounded-[4px]"
                         >
                           编辑
                         </button>
@@ -1142,9 +1183,16 @@ export default function TeacherProjects({
 
                         {/* Secondary actions dropdown */}
                         {(() => {
-                          const secondaryActions: Array<{ label: string; onClick: () => void; isDanger?: boolean }> = [
+                          const secondaryActions: Array<{ label: string; onClick: () => void; isDanger?: boolean; disabled?: boolean }> = [
                             { label: '检查项', onClick: () => { setChecksProject(proj); setActiveDropdownId(null); } },
                           ];
+                          {
+                            secondaryActions.unshift({
+                              label: '在线出题',
+                              disabled: proj.range !== '私有',
+                              onClick: () => openProjectPreview(proj, true),
+                            });
+                          }
                           
                           if (proj.status === '草稿') {
                             secondaryActions.push({
@@ -1236,9 +1284,10 @@ export default function TeacherProjects({
                             }
                           }
 
-                          if (proj.range !== '租户' && proj.range !== '平台') {
+                          {
                             secondaryActions.push({
                               label: '删除',
+                              disabled: proj.range !== '私有',
                               onClick: () => {
                                 setConfirmDialog({
                                   show: true,
@@ -1254,7 +1303,7 @@ export default function TeacherProjects({
                           if (secondaryActions.length === 0) return null;
 
                           return (
-                            <div className="relative">
+                            <div className="relative" data-action-menu-open={activeDropdownId === proj.id}>
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1269,11 +1318,18 @@ export default function TeacherProjects({
                                   {secondaryActions.map((act, actIdx) => (
                                     <button 
                                       key={actIdx}
+                                      disabled={act.disabled}
                                       onClick={() => {
+                                        if (act.disabled) return;
                                         setActiveDropdownId(null);
                                         act.onClick();
                                       }}
-                                      className="w-full text-left px-3 py-1.5 text-[12px] bg-transparent border-0 cursor-pointer block transition-all text-neutral-900 hover:text-[#fa541c] hover:bg-orange-50 font-medium"
+                                      className={cn(
+                                        "w-full text-left px-3.5 py-1.5 text-[12px] bg-transparent border-0 block transition-all font-medium",
+                                        act.disabled
+                                          ? "text-neutral-400 cursor-not-allowed hover:bg-transparent"
+                                          : "text-neutral-900 cursor-pointer hover:text-[#fa541c] hover:bg-orange-50"
+                                      )}
                                     >
                                       {act.label}
                                     </button>
@@ -1612,7 +1668,7 @@ export default function TeacherProjects({
                       {[
                         { value: '容器', label: '容器' },
                         { value: '虚机', label: '云主机' }
-                      ].map(opt => (
+                      ].filter(opt => scene !== '网络仿真' || opt.value === '虚机').map(opt => (
                         <label 
                           key={opt.value} 
                           className={cn(
@@ -2411,10 +2467,10 @@ export default function TeacherProjects({
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-[100px_minmax(0,1fr)] items-start gap-4">
+                  {modalMode === 'view' && <div className="grid grid-cols-1 sm:grid-cols-[100px_minmax(0,1fr)] items-start gap-4">
                     <span className="text-[13px] font-bold text-[#262626] sm:text-right pt-1">数据集选择</span>
                     <DatasetSyncSelector value={formDatasets} onChange={setFormDatasets} disabled={modalMode === 'view'} />
-                  </div>
+                  </div>}
                 </div>
               )}
 
@@ -2671,7 +2727,7 @@ export default function TeacherProjects({
         </div>
       )}
 
-      <ProjectChecksDrawer project={checksProject} onClose={() => setChecksProject(null)} />
+      <ProjectChecksDrawer project={checksProject} canEdit={checksProject?.range === '私有'} onClose={() => setChecksProject(null)} />
 
       {/* Action Confirmation Modal (Ref Course Module) */}
       {confirmDialog.show && (

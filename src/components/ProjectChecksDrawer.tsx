@@ -26,7 +26,7 @@ function CustomSelect({ value, onChange, options, placeholder }: { value: string
   </Select>;
 }
 
-export default function ProjectChecksDrawer({ project, onClose }: { project: { id: number; name: string } | null; onClose: () => void }) {
+export default function ProjectChecksDrawer({ project, canEdit = false, onClose }: { project: { id: number; name: string } | null; canEdit?: boolean; onClose: () => void }) {
   const [records, setRecords] = useState<Record<number, CheckItem[]>>({});
   const [view, setView] = useState<'list' | 'form' | 'detail'>('list');
   const [form, setForm] = useState<CheckItem>(emptyForm);
@@ -54,9 +54,11 @@ export default function ProjectChecksDrawer({ project, onClose }: { project: { i
   if (!project) return null;
   const items = records[project.id] || [];
   const startForm = (item?: CheckItem) => {
+    if (!canEdit) return;
     importSequence.current++; setForm(item ? { ...item } : emptyForm()); setError(''); setView('form');
   };
   const save = () => {
+    if (!canEdit) return;
     if (!form.name.trim()) { setError('请输入检查项名称'); return; }
     if (!form.block) { setError('请选择代码块'); return; }
     if (!form.code.trim()) { setError('代码块内容不能为空'); return; }
@@ -85,7 +87,7 @@ export default function ProjectChecksDrawer({ project, onClose }: { project: { i
       <div className="p-6 overflow-y-auto flex-1 space-y-5 custom-scrollbar">
         <div className="bg-orange-50/20 rounded-lg px-4 py-3 border border-orange-100/60 text-neutral-600 break-words"><span className="text-neutral-400">关联项目：</span>{project.name}</div>
         {view === 'list' ? <>
-          <div className="flex items-center justify-between gap-3"><span className="text-neutral-500">共 {items.length} 个检查项</span><Button onClick={() => startForm()} className="bg-[#fa541c] hover:bg-[#e84a15] text-white h-8 px-3 rounded-[4px] text-xs cursor-pointer"><Plus size={14} />新建检查项</Button></div>
+          <div className="flex items-center justify-between gap-3"><span className="text-neutral-500">共 {items.length} 个检查项</span><Button disabled={!canEdit} onClick={() => startForm()} className="bg-[#fa541c] hover:bg-[#e84a15] text-white h-8 px-3 rounded-[4px] text-xs cursor-pointer disabled:bg-[#ffbb96] disabled:opacity-100 disabled:cursor-not-allowed"><Plus size={14} />新建检查项</Button></div>
           <div className="border border-neutral-200 rounded-[6px] overflow-x-auto">
             <table className="w-full text-left text-[13px]">
               <thead className="bg-neutral-50 text-neutral-500 border-b border-neutral-100"><tr><th className="p-3 font-medium w-[30%]">检查项名称</th><th className="p-3 font-medium">检查项内容</th><th className="p-3 font-medium w-[30%]">检查项描述</th><th className="p-3 font-medium whitespace-nowrap">操作</th></tr></thead>
@@ -93,8 +95,8 @@ export default function ProjectChecksDrawer({ project, onClose }: { project: { i
                 <td className="p-3 break-all">{item.name}</td>
                 <td className="p-3"><button className="text-[#fa541c] whitespace-nowrap cursor-pointer" onClick={() => { setForm({ ...item }); setView('detail'); }}>详情查看</button></td>
                 <td className="p-3 break-all text-neutral-500">{item.description || '--'}</td>
-                <td className="p-3"><div className="flex items-center gap-3 whitespace-nowrap"><button onClick={() => startForm(item)} className="text-[#fa541c] cursor-pointer">编辑</button><span className="h-3 w-px bg-neutral-200" /><button onClick={() => setDeleting(item)} className="text-[#fa541c] cursor-pointer">删除</button></div></td>
-              </tr>)}{items.length === 0 && <tr><td colSpan={4} className="py-16 text-center text-neutral-400">暂无检查项，点击“新建检查项”添加</td></tr>}</tbody>
+                <td className="p-3"><div className="flex items-center gap-3 whitespace-nowrap"><button disabled={!canEdit} onClick={() => startForm(item)} className="text-[#fa541c] cursor-pointer disabled:text-[#ffbb96] disabled:cursor-not-allowed">编辑</button><span className="h-3 w-px bg-neutral-200" /><button disabled={!canEdit} onClick={() => { if (canEdit) setDeleting(item); }} className="text-[#fa541c] cursor-pointer disabled:text-[#ffbb96] disabled:cursor-not-allowed">删除</button></div></td>
+              </tr>)}{items.length === 0 && <tr><td colSpan={4} className="py-16 text-center text-neutral-400">{canEdit ? '暂无检查项，点击“新建检查项”添加' : '暂无检查项'}</td></tr>}</tbody>
             </table>
           </div>
         </> : view === 'form' ? <form id="project-check-form" onSubmit={event => { event.preventDefault(); save(); }} className="space-y-5">
@@ -125,7 +127,7 @@ export default function ProjectChecksDrawer({ project, onClose }: { project: { i
       <div role="alertdialog" aria-modal="true" aria-labelledby="delete-project-check-title" className="w-full max-w-[420px] bg-white rounded-lg p-6 shadow-xl" onClick={event => event.stopPropagation()}>
         <h3 id="delete-project-check-title" className="font-semibold text-[16px] flex items-center gap-2"><Trash2 size={18} className="text-[#fa541c]" />删除检查项</h3>
         <p className="mt-4 text-neutral-500 break-all">确定删除检查项“{deleting.name}”吗？删除后不可恢复。</p>
-        <div className="mt-6 flex justify-end gap-3"><Button variant="outline" onClick={() => setDeleting(null)}>取消</Button><Button className="bg-[#fa541c] hover:bg-[#e84a15] text-white" onClick={() => { setRecords(previous => ({ ...previous, [project.id]: items.filter(item => item.id !== deleting.id) })); setDeleting(null); }}>确认删除</Button></div>
+        <div className="mt-6 flex justify-end gap-3"><Button variant="outline" onClick={() => setDeleting(null)}>取消</Button><Button className="bg-[#fa541c] hover:bg-[#e84a15] text-white" onClick={() => { if (!canEdit) return; setRecords(previous => ({ ...previous, [project.id]: items.filter(item => item.id !== deleting.id) })); setDeleting(null); }}>确认删除</Button></div>
       </div>
     </div>}
   </div>;

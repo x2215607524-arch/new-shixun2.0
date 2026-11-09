@@ -1,3 +1,4 @@
+import { useDismissActionMenu } from '@/lib/useDismissActionMenu';
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, FolderKanban, HelpCircle, FileQuestion, FileText, Database, BookOpen, Copy, Eye, User, Calendar, Clock, Search, Trash2, Edit, Check, X, Users, CreditCard, Cpu, ShieldCheck, AlertCircle, CheckCircle, ShieldAlert, BarChart3, School, PenTool, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -141,14 +142,9 @@ export default function TeacherHome() {
   
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [activeCourseDropdownId, setActiveCourseDropdownId] = useState<number | null>(null);
+  useDismissActionMenu(setActiveCourseDropdownId);
 
-  useEffect(() => {
-    const handleGlobalClick = () => {
-      setActiveCourseDropdownId(null);
-    };
-    window.addEventListener('click', handleGlobalClick);
-    return () => window.removeEventListener('click', handleGlobalClick);
-  }, []);
+
 
   const [courseSearchQuery, setCourseSearchQuery] = useState('');
   const [courseFormName, setCourseFormName] = useState('');
@@ -622,7 +618,7 @@ export default function TeacherHome() {
                               </button>
 
                               {/* Dropdown for other options */}
-                              <div className="relative">
+                              <div className="relative" data-action-menu-open={activeCourseDropdownId === course.id}>
                                 <button 
                                   onClick={(e) => {
                                       e.stopPropagation();
@@ -796,6 +792,7 @@ export default function TeacherHome() {
           </div>
         ) : activeSubTab === 'project' ? (
           <TeacherProjects 
+            scene={activeModule}
             embedded={true} 
             defaultCourseId={selectedCourseId} 
             defaultCourseName={selectedCourseName}

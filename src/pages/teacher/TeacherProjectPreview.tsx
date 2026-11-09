@@ -1,11 +1,13 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProjectDetail, { type ProjectData } from '@/components/ProjectDetail';
 import ProjectIDE from '@/components/ProjectIDE';
+import ProjectVMWorkspace, { type ProjectVirtualMachine } from '@/components/ProjectVMWorkspace';
+import NetworkProjectWorkspace from '@/components/NetworkProjectWorkspace';
 
 export default function TeacherProjectPreview() {
   const location = useLocation();
   const navigate = useNavigate();
-  const state = location.state as { project?: ProjectData; returnTo?: string; returnState?: Record<string, unknown> } | null;
+  const state = location.state as { project?: ProjectData; projectId?: number; scene?: string; environment?: ProjectVirtualMachine; environments?: ProjectVirtualMachine[]; canEdit?: boolean; returnTo?: string; returnState?: Record<string, unknown> } | null;
   const onBack = () => navigate(state?.returnTo || '/teacher', {
     state: { ...state?.returnState, activeSubTab: 'project' },
     replace: true,
@@ -19,6 +21,13 @@ export default function TeacherProjectPreview() {
   }
 
   if (new URLSearchParams(location.search).get('view') === 'workspace') {
+    if (state.scene === '网络仿真') {
+      return <NetworkProjectWorkspace projectId={state.projectId || 101} title={state.project.title} canEdit={state.canEdit === true} onBack={() => navigate(-1)} />;
+    }
+    if (state.environment?.type === '虚机') {
+      const machines = (state.environments || [state.environment]).filter(item => item.type === '虚机');
+      return <ProjectVMWorkspace title={state.project.title} machines={machines} canEdit={state.canEdit === true} onBack={() => navigate(-1)} />;
+    }
     return <ProjectIDE projectTitle={state.project.title} showAIAssistant={false} showChecks onBack={() => navigate(-1)} />;
   }
 

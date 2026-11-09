@@ -1,3 +1,4 @@
+import { useDismissActionMenu } from '@/lib/useDismissActionMenu';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -132,6 +133,7 @@ export default function TeacherDatasets({
   
   // Dropdown Action State
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
+  useDismissActionMenu(setActiveDropdownId);
 
   // Filter dropdown state
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);

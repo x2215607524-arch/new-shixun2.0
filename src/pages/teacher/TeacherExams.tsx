@@ -1,3 +1,4 @@
+import { useDismissActionMenu } from '@/lib/useDismissActionMenu';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Plus, ChevronRight, ChevronDown, X, Power, Bot, Check,
@@ -251,6 +252,7 @@ export default function TeacherExams({ embedded = false }) {
     onConfirm: () => {}
   });
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
+  useDismissActionMenu(setActiveDropdownId);
   const [toastMessage, setToastMessage] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
 
   useEffect(() => {
@@ -355,6 +357,7 @@ export default function TeacherExams({ embedded = false }) {
   const [previewQuestionIdx, setPreviewQuestionIdx] = useState(0);
   const [previewAnswers, setPreviewAnswers] = useState<Record<string, any>>({});
   const [openMoreRow, setOpenMoreRow] = useState<string | null>(null);
+  useDismissActionMenu(setOpenMoreRow);
   const [contentCurrentPage, setContentCurrentPage] = useState(1);
   const [contentPageSize, setContentPageSize] = useState(5);
   const [overviewCurrentPage, setOverviewCurrentPage] = useState(1);
@@ -1195,7 +1198,7 @@ export default function TeacherExams({ embedded = false }) {
                                               </button>
                                             ))}
                                             {secondaryActions.length > 0 && (
-                                              <div className="relative">
+                                              <div className="relative" data-action-menu-open={activeDropdownId === `session-${session.id}`}>
                                                 <button 
                                                   onClick={(e) => {
                                                     e.stopPropagation();
@@ -4093,7 +4096,7 @@ export default function TeacherExams({ embedded = false }) {
                             >
                               清理环境
                             </button>
-                            <div className="relative">
+                            <div className="relative" data-action-menu-open={openMoreRow === 'p01'}>
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -4168,7 +4171,7 @@ export default function TeacherExams({ embedded = false }) {
                             >
                               清理环境
                             </button>
-                            <div className="relative">
+                            <div className="relative" data-action-menu-open={openMoreRow === 'p03'}>
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
